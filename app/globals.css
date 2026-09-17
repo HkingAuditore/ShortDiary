@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/**
+ * 剪纸设计系统的唯一 Token 来源（设计文档 §3.4）。
+ * 组件禁止写死色值；简洁模式（simpleMode）关闭全部纹理与撕边，只保留配色。
+ */
+
+@theme {
+  --color-paper-bg: #d8b98f;
+  --color-paper-deep: #c2a075;
+  --color-paper-corrugated: #b8905f;
+  --color-paper-card: #f7f1e7;
+  --color-paper-strong: #fff9ef;
+  --color-ink: #3f3933;
+  --color-ink-muted: #7f7469;
+  --color-ink-faint: #a89a8c;
+  --color-sage: #6e8b72;
+  --color-sun: #e9b64f;
+  --color-rose: #d88e86;
+  --color-sky: #79a9bc;
+
+  --radius-card: 6px;
+  --shadow-paper: 0 8px 22px rgba(76, 58, 39, 0.16);
+  --shadow-paper-hover: 0 12px 28px rgba(76, 58, 39, 0.2);
+  --shadow-torn: 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+
+  --font-serif-cn: "Songti SC", "SimSun", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  --font-hand: "Segoe Script", "Bradley Hand", cursive;
+}
+
+:root {
+  --paper-noise-opacity: 0.05;
+  --torn-opacity: 1;
+}
+
+/* 简洁模式：可读性兜底，关闭纹理与撕边 */
+html[data-simple="true"] {
+  --paper-noise-opacity: 0;
+  --torn-opacity: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-paper-bg);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 纸纤维纹理：单张 256px 无缝噪声内联，opacity 极低，不承载文字 */
+.paper-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: var(--paper-noise-opacity);
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+}
+
+/* 撕边：预生成 4 种变体循环使用，禁止逐卡片随机路径（视觉躁动 + 计算开销） */
+.torn-1 {
+  clip-path: polygon(0 2%, 4% 0, 22% 1.5%, 38% 0.4%, 61% 1.8%, 79% 0.3%, 96% 1.4%, 100% 0.6%, 99.4% 34%, 100% 68%, 99.2% 99%, 88% 100%, 66% 98.8%, 41% 100%, 18% 98.6%, 2% 99.6%, 0.4% 72%, 0 38%);
+}
+.torn-2 {
+  clip-path: polygon(0.6% 0, 18% 1.2%, 44% 0.2%, 72% 1.6%, 92% 0.4%, 100% 1.8%, 99.6% 41%, 100% 79%, 99% 100%, 82% 98.8%, 55% 100%, 27% 98.6%, 1% 99.8%, 0 62%, 0.8% 27%);
+}
+.torn-3 {
+  clip-path: polygon(0 1.4%, 27% 0, 53% 1.6%, 81% 0.2%, 100% 1%, 99.8% 47%, 100% 88%, 98.8% 100%, 76% 98.6%, 48% 100%, 21% 98.4%, 0 99.4%, 0.6% 55%, 0 19%);
+}
+.torn-4 {
+  clip-path: polygon(0.8% 1.8%, 31% 0.4%, 58% 1.4%, 86% 0, 100% 2%, 99.4% 52%, 100% 92%, 99% 100%, 71% 98.8%, 39% 100%, 12% 98.6%, 0 100%, 0.4% 66%, 1% 24%);
+}
+
+/* 瓦楞纸：只在结构层少量出现 */
+.corrugated {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(255, 255, 255, 0.06) 2px,
+    rgba(255, 255, 255, 0.06) 5px
+  );
+}
+
+.tape {
+  background: linear-gradient(180deg, rgba(233, 182, 79, 0.75), rgba(233, 182, 79, 0.55));
+  box-shadow: 0 1px 3px rgba(76, 58, 39, 0.18);
+}
+
+/* 焦点环：必须可见，做成「墨线」样式 */
+.paper-focus:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.scan-line {
+  background: linear-gradient(90deg, transparent, rgba(110, 139, 114, 0.35), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
