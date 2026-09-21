@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { clsx } from "clsx";
 import { apiGet, apiSend } from "@/lib/api/client";
-import { PaperButton, PaperCard } from "@/components/paper/PaperCard";
+import { PaperButton, PaperCard, TagChip, HandNote } from "@/components/paper/PaperCard";
 import { useToast } from "@/components/common/Toast";
 import { PROTOCOL_LABELS, PROTOCOL_DEFAULT_BASE_URL, type Protocol } from "@/lib/ai/types";
 
@@ -51,28 +52,41 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
+/** 设置页顶部：页签做成一排斜贴的小纸签 */
+function SettingsTabs({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => void }) {
+  return (
+    <div role="tablist" aria-label="设置分区" className="flex flex-wrap gap-2.5">
+      {TABS.map((t, i) => {
+        const active = tab === t.key;
+        return (
+          <button
+            key={t.key}
+            role="tab"
+            aria-selected={active}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={clsx(
+              "paper-focus rounded-l-[7px] rounded-r-[3px] px-4 py-1.5 text-sm transition-all duration-(--dur-fast) ease-out",
+              active
+                ? "-translate-y-[2px] bg-paper-strong text-ink shadow-(--shadow-paper) ring-1 ring-ink/10"
+                : "rotate-[0.6deg] bg-paper-card/80 text-ink/70 hover:-translate-y-[1px] hover:text-ink",
+            )}
+            style={active ? undefined : { transform: `rotate(${(i - 1) * 0.7}deg)` }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function SettingsPanel() {
   const [tab, setTab] = useState<TabKey>("account");
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-1">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            aria-current={tab === t.key ? "true" : undefined}
-            className={[
-              "paper-focus rounded-[3px] px-3 py-1.5 text-sm transition-colors",
-              tab === t.key ? "bg-paper-strong text-ink shadow-(--shadow-paper)" : "text-ink/70 hover:bg-paper-strong/60",
-            ].join(" ")}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
+    <div className="space-y-5">
+      <SettingsTabs tab={tab} setTab={setTab} />
       {tab === "account" ? <AccountSection /> : null}
       {tab === "ai" ? <ProviderSection /> : null}
       {tab === "data" ? <DataSection /> : null}
@@ -115,49 +129,53 @@ function AccountSection() {
     onError: (err: Error) => toast.push(err.message, { tone: "error" }),
   });
 
+  const PREF_ITEMS: Array<[keyof Preferences, string]> = [
+    ["autoAnnotate", "写入后自动交给 AI 整理"],
+    ["moodAnalysis", "分析心情"],
+    ["simpleMode", "简洁模式（关闭纸纹与撕边）"],
+    ["privacyMode", "隐私模式（界面上模糊处理）"],
+  ];
+
   return (
-    <PaperCard seed="account" className="space-y-3 p-4">
-      <label className="block text-sm">
-        <span className="mb-1 block text-xs text-ink-muted">显示名称</span>
-        <input
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
-        />
-      </label>
+    <PaperCard seed="account" className="space-y-4 p-5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block text-sm">
+          <span className="mb-1 block text-xs text-ink-muted">显示名称</span>
+          <input
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            className="paper-focus w-full rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+          />
+        </label>
 
-      <label className="block text-sm">
-        <span className="mb-1 block text-xs text-ink-muted">时区（决定「今天」是哪一天）</span>
-        <input
-          value={timezone}
-          onChange={(e) => setTimezone(e.target.value)}
-          placeholder="Asia/Shanghai"
-          className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
-        />
-      </label>
+        <label className="block text-sm">
+          <span className="mb-1 block text-xs text-ink-muted">时区（决定「今天」是哪一天）</span>
+          <input
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            placeholder="Asia/Shanghai"
+            className="paper-focus w-full rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+          />
+        </label>
+      </div>
 
-      <fieldset className="space-y-1.5">
-        <legend className="mb-1 text-xs text-ink-muted">偏好</legend>
-        {(
-          [
-            ["autoAnnotate", "写入后自动交给 AI 整理"],
-            ["moodAnalysis", "分析心情"],
-            ["simpleMode", "简洁模式（关闭纸纹与撕边）"],
-            ["privacyMode", "隐私模式（界面上模糊处理）"],
-          ] as Array<[keyof Preferences, string]>
-        ).map(([key, label]) => (
-          <label key={key} className="flex items-center gap-2 text-sm">
+      <fieldset className="space-y-2 rounded-[4px] bg-paper-strong/60 px-3.5 py-3">
+        <legend className="hand-note px-1 text-xs">偏好</legend>
+        {PREF_ITEMS.map(([key, label]) => (
+          <label key={key} className="flex cursor-pointer items-center gap-2.5 text-sm">
             <input
               type="checkbox"
               checked={prefs[key] === true}
               onChange={(e) => setPrefs((p) => ({ ...p, [key]: e.target.checked }))}
+              className={clsx("h-4 w-4", key === "simpleMode" ? "accent-sun" : "accent-sage")}
             />
             {label}
           </label>
         ))}
       </fieldset>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <HandNote className="text-[11px]">改动会立即生效</HandNote>
         <PaperButton variant="primary" disabled={save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? "保存中…" : "保存"}
         </PaperButton>
@@ -175,6 +193,9 @@ const EMPTY_FORM = {
   vision: "",
   embedding: "",
 };
+
+const inputCls =
+  "paper-focus w-full rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60";
 
 function ProviderSection() {
   const toast = useToast();
@@ -250,23 +271,36 @@ function ProviderSection() {
 
   return (
     <div className="space-y-4">
-      <PaperCard seed="providers" className="p-4">
-        <h2 className="mb-2 font-(--font-serif-cn) text-base">已配置的服务商</h2>
+      <PaperCard seed="providers" className="p-5">
+        <h2 className="mb-1 font-(--font-serif-cn) text-base">已配置的服务商</h2>
+        <HandNote className="mb-3 block text-[11px]">AI 是可替换的分析器，你的数据不依赖任何一家</HandNote>
 
         {list.data?.length === 0 ? (
           <p className="text-sm text-ink-muted">还没有配置。AI 功能是可选的 —— 不配置也能正常记录。</p>
         ) : null}
 
-        <ul className="space-y-2">
-          {(list.data ?? []).map((p) => (
-            <li key={p.id} className="rounded-[3px] border border-ink/10 bg-paper-strong/60 px-3 py-2">
+        <ul className="space-y-2.5">
+          {(list.data ?? []).map((p, i) => (
+            <li
+              key={p.id}
+              className={clsx(
+                "relative rounded-l-[6px] rounded-r-[3px] border bg-paper-strong/70 px-3.5 py-2.5 transition-all duration-(--dur-fast)",
+                p.isDefault ? "border-sage/45 shadow-[0_2px_6px_rgba(76,58,39,0.12)]" : "border-ink/10",
+              )}
+              style={{ transform: `rotate(${((i % 3) - 1) * 0.4}deg)` }}
+            >
+              {p.isDefault ? (
+                <span aria-hidden className="absolute -left-1 top-1/2 h-6 w-2 -translate-y-1/2 rounded-r-[3px] bg-sage shadow-[1px_0_2px_rgba(76,58,39,0.2)]" />
+              ) : null}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm">
+                  <p className="flex items-center gap-1.5 text-sm">
                     {p.name}
-                    {p.isDefault ? <span className="ml-1.5 rounded-[2px] bg-sage/20 px-1.5 py-0.5 text-[11px] text-sage">默认</span> : null}
+                    {p.isDefault ? <TagChip token="sage" className="h-5 text-[10px]">默认</TagChip> : null}
+                    {p.lastTestOk === true ? <span className="text-[11px] text-sage">● 连接正常</span> : null}
+                    {p.lastTestOk === false ? <span className="text-[11px] text-rose">● 上次测试失败</span> : null}
                   </p>
-                  <p className="truncate text-[11px] text-ink-faint">
+                  <p className="mt-0.5 truncate text-[11px] text-ink-faint">
                     {PROTOCOL_LABELS[p.protocol as Protocol] ?? p.protocol} · {p.baseUrl} · Key {p.keyHint}
                   </p>
                   <p className="text-[11px] text-ink-faint">
@@ -275,41 +309,35 @@ function ProviderSection() {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <PaperButton variant="ghost" disabled={test.isPending} onClick={() => test.mutate(p.id)}>
-                    测试
+                  <PaperButton variant="secondary" className="px-2.5 py-1 text-xs" disabled={test.isPending} onClick={() => test.mutate(p.id)}>
+                    测试连接
                   </PaperButton>
                   {!p.isDefault ? (
-                    <PaperButton variant="ghost" onClick={() => update.mutate({ id: p.id, body: { isDefault: true } })}>
+                    <PaperButton variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => update.mutate({ id: p.id, body: { isDefault: true } })}>
                       设为默认
                     </PaperButton>
                   ) : null}
-                  <PaperButton variant="ghost" onClick={() => remove.mutate(p.id)}>
+                  <PaperButton variant="ghost" className="px-2.5 py-1 text-xs hover:text-rose" onClick={() => remove.mutate(p.id)}>
                     删除
                   </PaperButton>
                 </div>
               </div>
-
-              {p.lastTestAt ? (
-                <p className="mt-1 text-[11px] text-ink-faint">
-                  上次测试：{new Date(p.lastTestAt).toLocaleString("zh-CN")} · {p.lastTestOk ? "成功" : "失败"}
-                </p>
-              ) : null}
             </li>
           ))}
         </ul>
       </PaperCard>
 
-      <PaperCard seed="add-provider" className="space-y-2.5 p-4">
+      <PaperCard seed="add-provider" className="space-y-3 p-5">
         <h2 className="font-(--font-serif-cn) text-base">添加服务商</h2>
 
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           <label className="text-sm">
             <span className="mb-1 block text-xs text-ink-muted">名称</span>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="例如：我的 OpenAI"
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             />
           </label>
 
@@ -318,7 +346,7 @@ function ProviderSection() {
             <select
               value={form.protocol}
               onChange={(e) => setForm({ ...form, protocol: e.target.value as Protocol })}
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             >
               {(Object.keys(PROTOCOL_LABELS) as Protocol[]).map((p) => (
                 <option key={p} value={p}>
@@ -334,7 +362,7 @@ function ProviderSection() {
               value={form.baseUrl}
               onChange={(e) => setForm({ ...form, baseUrl: e.target.value })}
               placeholder={PROTOCOL_DEFAULT_BASE_URL[form.protocol]}
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             />
           </label>
 
@@ -344,7 +372,7 @@ function ProviderSection() {
               type="password"
               value={form.apiKey}
               onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             />
           </label>
 
@@ -354,7 +382,7 @@ function ProviderSection() {
               value={form.chat}
               onChange={(e) => setForm({ ...form, chat: e.target.value })}
               placeholder="gpt-4o-mini"
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             />
           </label>
 
@@ -363,7 +391,7 @@ function ProviderSection() {
             <input
               value={form.vision}
               onChange={(e) => setForm({ ...form, vision: e.target.value })}
-              className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong px-2.5 py-1.5 outline-none"
+              className={inputCls}
             />
           </label>
         </div>
@@ -379,7 +407,7 @@ function ProviderSection() {
         </div>
       </PaperCard>
 
-      <PaperCard seed="import-provider" className="space-y-2 p-4">
+      <PaperCard seed="import-provider" className="space-y-2.5 p-5">
         <h2 className="font-(--font-serif-cn) text-base">粘贴配置导入</h2>
         <p className="text-xs text-ink-muted">支持 snake_case JSON：name / protocol / base_url / api_key / models</p>
         <textarea
@@ -387,7 +415,7 @@ function ProviderSection() {
           onChange={(e) => setImportText(e.target.value)}
           rows={5}
           placeholder={'{\n  "name": "DeepSeek",\n  "protocol": "openai_compatible",\n  "base_url": "https://api.deepseek.com/v1",\n  "api_key": "sk-...",\n  "models": { "chat": "deepseek-chat" }\n}'}
-          className="paper-focus w-full rounded-[3px] border border-ink/15 bg-paper-strong p-2 font-mono text-xs outline-none"
+          className="paper-focus w-full rounded-[4px] border border-ink/15 bg-paper-strong p-2.5 font-mono text-xs shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
         />
         <div className="flex justify-end">
           <PaperButton variant="primary" disabled={create.isPending || !importText.trim()} onClick={submitImport}>
@@ -438,11 +466,9 @@ function DataSection() {
 
   return (
     <div className="space-y-4">
-      <PaperCard seed="export" className="p-4">
+      <PaperCard seed="export" className="p-5">
         <h2 className="mb-1 font-(--font-serif-cn) text-base">导出我的数据</h2>
-        <p className="mb-3 text-xs text-ink-muted">
-          数据是你的。三种格式：JSON（可再导入）、Markdown（给人读）、ZIP（含图片原图）。
-        </p>
+        <HandNote className="mb-3 block text-[11px]">数据是你的 —— 随时带走，不留悬念</HandNote>
         <div className="flex flex-wrap gap-2">
           <PaperButton variant="primary" disabled={build.isPending} onClick={() => build.mutate("zip")}>
             导出 ZIP
@@ -456,10 +482,10 @@ function DataSection() {
         </div>
 
         {exports.data && exports.data.length > 0 ? (
-          <ul className="mt-3 space-y-1 text-xs text-ink-muted">
+          <ul className="mt-4 space-y-1.5 text-xs text-ink-muted">
             {exports.data.slice(0, 8).map((e) => (
               <li key={e.id} className="flex justify-between gap-2">
-                <a className="paper-focus underline decoration-dotted underline-offset-2" href={`/api/export/${e.id}`}>
+                <a className="paper-focus underline decoration-dotted underline-offset-2 transition-colors hover:text-ink" href={`/api/export/${e.id}`}>
                   {e.filename}
                 </a>
                 <span className="text-ink-faint">
@@ -471,7 +497,7 @@ function DataSection() {
         ) : null}
       </PaperCard>
 
-      <PaperCard seed="import" className="p-4">
+      <PaperCard seed="import" className="p-5">
         <h2 className="mb-1 font-(--font-serif-cn) text-base">从导出文件恢复</h2>
         <p className="mb-3 text-xs text-ink-muted">按 id 幂等写入：重复导入不会产生重复条目。</p>
         <input

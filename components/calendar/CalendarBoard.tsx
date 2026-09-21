@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import { apiGet } from "@/lib/api/client";
 import { daysInMonth, monthGrid, today as todayStr } from "@/lib/utils/date";
+import { HandNote } from "@/components/paper/PaperCard";
 
 interface DayStat {
   entryDate: string;
@@ -21,7 +22,8 @@ interface CalendarResponse {
 
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
 
-/** 日历热力：一次聚合整月，点的大小反映当天记录数量 */
+/** 日历热力（§3.3 日历行）：月视图显示记录密度；点的大小反映当天记录数量。
+ *  日期格是「贴在牛皮纸上的小纸片」，有记录的日子微微翘起（阴影 + 轻角度）。 */
 export function CalendarBoard({ initialYear, initialMonth, timezone }: { initialYear: number; initialMonth: number; timezone: string }) {
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
@@ -51,18 +53,24 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
   const totalDays = daysInMonth(year, month);
 
   return (
-    <section aria-label="记录日历">
-      <header className="mb-3 flex items-center justify-between">
+    <section aria-label="记录日历" className="paper-noise relative rounded-(--radius-card) bg-paper-card p-4 shadow-(--shadow-paper) md:p-5">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-(--font-serif-cn) text-lg">
           {year} 年 {month} 月
+          <HandNote className="ml-2 text-xs">回看某一天</HandNote>
         </h1>
         <div className="flex items-center gap-1.5">
-          <button type="button" className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-xs" onClick={() => shift(-1)}>
-            上月
+          <button
+            type="button"
+            aria-label="上一个月"
+            className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1 text-xs shadow-[0_1px_0_rgba(76,58,39,0.12)] transition-all duration-(--dur-fast) hover:-translate-y-[1px] active:translate-y-[1px] active:shadow-none"
+            onClick={() => shift(-1)}
+          >
+            ← 上月
           </button>
           <button
             type="button"
-            className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-xs"
+            className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1 text-xs shadow-[0_1px_0_rgba(76,58,39,0.12)] transition-all duration-(--dur-fast) hover:-translate-y-[1px] active:translate-y-[1px] active:shadow-none"
             onClick={() => {
               const [y, m] = current.split("-").map(Number) as [number, number];
               setYear(y);
@@ -71,13 +79,18 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
           >
             回到本月
           </button>
-          <button type="button" className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-xs" onClick={() => shift(1)}>
-            下月
+          <button
+            type="button"
+            aria-label="下一个月"
+            className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-2.5 py-1 text-xs shadow-[0_1px_0_rgba(76,58,39,0.12)] transition-all duration-(--dur-fast) hover:-translate-y-[1px] active:translate-y-[1px] active:shadow-none"
+            onClick={() => shift(1)}
+          >
+            下月 →
           </button>
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-ink-faint">
+      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] text-ink-faint">
         {WEEKDAYS.map((w) => (
           <div key={w} className="py-1">
             {w}
@@ -85,27 +98,35 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
         ))}
       </div>
 
-      <div className={clsx("grid grid-cols-7 gap-1", isLoading && "opacity-60")}>
+      <div className={clsx("relative grid grid-cols-7 gap-1.5 transition-opacity duration-(--dur-normal)", isLoading && "opacity-50")}>
         {grid.map((date) => {
           const inMonth = date.slice(0, 7) === key;
           const stat = statMap.get(date);
           const isToday = date === current;
           const day = Number(date.slice(8));
+          // 有记录的日子：小纸片轻微翘起的角度（由日期稳定派生，±1.2°）
+          const tilt = stat ? (((day % 3) - 1) * 0.6) : 0;
 
           return (
             <Link
               key={date}
               href={stat ? `/search?from=${date}&to=${date}` : "#"}
               aria-disabled={!stat}
+              aria-label={stat ? `${date}，${stat.count} 条记录` : `${date}，无记录`}
               className={clsx(
-                "paper-focus flex aspect-square flex-col items-center justify-center rounded-[3px] border text-xs transition-colors",
-                inMonth ? "border-ink/10 bg-paper-card" : "border-transparent bg-transparent text-ink-faint/50",
-                isToday && "ring-1 ring-sage",
+                "paper-focus flex aspect-square flex-col items-center justify-center rounded-[4px] border text-xs transition-all duration-(--dur-fast) ease-out",
+                inMonth
+                  ? stat
+                    ? "border-ink/12 bg-paper-strong shadow-[0_2px_5px_rgba(76,58,39,0.15)] hover:-translate-y-[2px] hover:shadow-(--shadow-paper-hover)"
+                    : "border-ink/8 bg-paper-strong/45"
+                  : "border-transparent bg-transparent text-ink-faint/40",
+                isToday && "ring-2 ring-sage/70 ring-offset-1 ring-offset-paper-card",
                 stat ? "hover:bg-paper-strong" : "pointer-events-none",
               )}
+              style={tilt !== 0 ? { transform: `rotate(${tilt}deg)` } : undefined}
             >
-              <span className={clsx(stat ? "text-ink" : "text-ink-faint")}>{inMonth ? day : ""}</span>
-              <span aria-hidden className="mt-0.5 flex h-1.5 items-center gap-0.5">
+              <span className={clsx(stat ? "font-medium text-ink" : "text-ink-faint")}>{inMonth ? day : ""}</span>
+              <span aria-hidden className="mt-1 flex h-1.5 items-center gap-0.5">
                 {stat
                   ? Array.from({ length: Math.min(stat.count, 4) }).map((_, i) => (
                       <span
@@ -121,9 +142,19 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
         })}
       </div>
 
-      <p className="mt-3 text-xs text-ink-muted">
-        本月共 {data?.days.reduce((n, d) => n + d.count, 0) ?? 0} 条记录 · {totalDays} 天
-        {timezone ? ` · 时区 ${timezone}` : ""}
+      <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+        <span>
+          本月共 <span className="font-medium text-ink">{data?.days.reduce((n, d) => n + d.count, 0) ?? 0}</span> 条记录 · {totalDays} 天
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-sage" /> 文字
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky" /> 有图
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-sun" /> 有星标
+        </span>
       </p>
     </section>
   );

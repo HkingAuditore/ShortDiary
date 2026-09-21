@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 /**
- * 剪纸设计系统的唯一 Token 来源（设计文档 §3.4）。
+ * 剪纸设计系统的唯一 Token 来源（设计文档 §3.4 / §3.7）。
  * 组件禁止写死色值；简洁模式（simpleMode）关闭全部纹理与撕边，只保留配色。
+ * 动效统一 150–350ms；transform/opacity 优先，reduced-motion 时全部关闭。
  */
 
 @theme {
   --color-paper-bg: #d8b98f;
+  --color-paper-bg-deep: #cfae82;
   --color-paper-deep: #c2a075;
   --color-paper-corrugated: #b8905f;
   --color-paper-card: #f7f1e7;
@@ -31,6 +33,11 @@
 :root {
   --paper-noise-opacity: 0.05;
   --torn-opacity: 1;
+  /* 动效时长 Token（§3.7）：快反馈 150ms，常规 220ms，进场 280ms */
+  --dur-fast: 150ms;
+  --dur-normal: 220ms;
+  --dur-enter: 280ms;
+  --ease-paper: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 /* 简洁模式：可读性兜底，关闭纹理与撕边 */
@@ -53,7 +60,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 纸纤维纹理：单张 256px 无缝噪声内联，opacity 极低，不承载文字 */
+/* ───────────────────────── 纸纤维纹理（低透明度 overlay，不承载文字） ───────────────────────── */
+
 .paper-noise::after {
   content: "";
   position: absolute;
@@ -66,7 +74,8 @@ body {
   border-radius: inherit;
 }
 
-/* 撕边：预生成 4 种变体循环使用，禁止逐卡片随机路径（视觉躁动 + 计算开销） */
+/* ───────────────────────── 撕边：4 种预生成变体循环（禁止逐卡片随机路径） ───────────────────────── */
+
 .torn-1 {
   clip-path: polygon(0 2%, 4% 0, 22% 1.5%, 38% 0.4%, 61% 1.8%, 79% 0.3%, 96% 1.4%, 100% 0.6%, 99.4% 34%, 100% 68%, 99.2% 99%, 88% 100%, 66% 98.8%, 41% 100%, 18% 98.6%, 2% 99.6%, 0.4% 72%, 0 38%);
 }
@@ -80,7 +89,8 @@ body {
   clip-path: polygon(0.8% 1.8%, 31% 0.4%, 58% 1.4%, 86% 0, 100% 2%, 99.4% 52%, 100% 92%, 99% 100%, 71% 98.8%, 39% 100%, 12% 98.6%, 0 100%, 0.4% 66%, 1% 24%);
 }
 
-/* 瓦楞纸：只在结构层少量出现 */
+/* ───────────────────────── 瓦楞纸：只在结构层少量出现 ───────────────────────── */
+
 .corrugated {
   background-image: repeating-linear-gradient(
     90deg,
@@ -106,6 +116,116 @@ body {
 .scan-line {
   background: linear-gradient(90deg, transparent, rgba(110, 139, 114, 0.35), transparent);
 }
+
+/* ───────────────────────── 手写层（§3.5）：只用于 2–12 字的批注与小签 ───────────────────────── */
+
+.hand-note {
+  font-family: var(--font-hand);
+  color: var(--color-ink-muted);
+}
+
+/* ───────────────────────── 纸片动效（§3.7）：放下 / 抽走 / 上浮 ───────────────────────── */
+
+/* 新纸片入场：从 8px 下方轻轻放下，240ms 内完成 */
+@keyframes paper-drop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.paper-drop {
+  animation: paper-drop var(--dur-enter) var(--ease-paper) both;
+}
+
+/* 图片落在桌面上：scale .96→1 + 轻微角度 */
+@keyframes photo-settle {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.photo-settle {
+  animation: photo-settle 200ms var(--ease-paper) both;
+}
+
+/* AI 生成中：卡片边缘的柔和扫描线循环（1.5s），禁止大面积闪烁 */
+@keyframes ai-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.ai-scanning {
+  position: relative;
+  overflow: hidden;
+}
+.ai-scanning::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(110, 139, 114, 0.14) 50%,
+    transparent 65%
+  );
+  animation: ai-scan 1.5s ease-in-out infinite;
+}
+
+/* 三点墨迹：AI 思考时的低调指示 */
+@keyframes ink-dots {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+.ink-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: ink-dots 1.4s ease-in-out infinite;
+}
+
+/* 纸页抽换（切换日期 / Modal 上浮）由 motion/react 承担，这里只保留 CSS 兜底类 */
+
+/* ───────────────────────── 氛围层（§3.1）：山形 / 植物剪影，低对比度 ───────────────────────── */
+
+/* 底部山形剪影：结构层装饰，放在侧栏与移动端底部导航上 */
+.paper-hills {
+  --hill: rgba(63, 57, 51, 0.1);
+  background-image:
+    radial-gradient(140px 90px at 18% 100%, var(--hill) 99%, transparent 100%),
+    radial-gradient(190px 120px at 55% 100%, var(--hill) 99%, transparent 100%),
+    radial-gradient(150px 80px at 88% 100%, var(--hill) 99%, transparent 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* 简洁模式下剪影一并关闭 */
+html[data-simple="true"] .paper-hills {
+  background-image: none;
+}
+
+/* ───────────────────────── Reduced motion（§3.9） ───────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   *,

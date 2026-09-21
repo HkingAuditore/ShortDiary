@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiGetPage } from "@/lib/api/client";
 import { blurhashToDataUrl } from "@/lib/media/placeholder";
+import { PolaroidPhoto } from "@/components/paper/PaperCard";
 import type { PhotoView } from "@/app/api/photos/route";
 
 /**
- * 相册瀑布流：CSS columns 排布，图片用宽高比占位避免跳动，游标分页加载。
+ * 相册瀑布流（§3.1 照片层）：拍立得/相纸卡片在牛皮纸桌面上散落，
+ * 角度由 id 稳定派生（≤2°），hover 时摆正。CSS columns 排布 + 游标分页。
  */
 export function PhotoWall() {
   const query = useInfiniteQuery({
@@ -40,54 +42,48 @@ export function PhotoWall() {
 
   if (query.isLoading) {
     return (
-      <div className="columns-2 gap-2 md:columns-3" aria-busy>
+      <div className="columns-2 gap-4 md:columns-3" aria-busy>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="mb-2 h-40 animate-pulse rounded-[3px] bg-paper-card/70" />
+          <div key={i} className="mb-4 h-44 animate-pulse rounded-[4px] bg-paper-card/70" />
         ))}
       </div>
     );
   }
 
   if (photos.length === 0) {
-    return <p className="py-10 text-center text-sm text-ink-muted">还没有照片。写一条带图记录试试。</p>;
+    return (
+      <div className="py-12 text-center">
+        <p className="hand-note text-base text-ink-muted">还没有照片。写一条带图记录试试。</p>
+        <p className="mt-2 text-xs text-ink-faint">照片会自动变成拍立得的样子</p>
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="columns-2 gap-2 md:columns-3">
+      <div className="columns-2 gap-4 md:columns-3 [&>*]:mb-4">
         {photos.map((p) => {
           const placeholder = blurhashToDataUrl(p.blurhash);
           return (
-            <a
+            <PolaroidPhoto
               key={p.id}
-              href={p.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mb-2 block overflow-hidden rounded-[3px] border border-ink/10 bg-paper-deep/40"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.url}
-                alt=""
-                width={p.width}
-                height={p.height}
-                loading="lazy"
-                decoding="async"
-                style={{
-                  aspectRatio: `${p.width} / ${p.height}`,
-                  backgroundImage: placeholder ? `url(${placeholder})` : undefined,
-                  backgroundSize: "cover",
-                }}
-                className="h-auto w-full object-cover"
-              />
-            </a>
+              src={p.url}
+              alt=""
+              width={p.width}
+              height={p.height}
+              placeholder={placeholder}
+              seed={p.id}
+              className="break-inside-avoid"
+            />
           );
         })}
       </div>
 
       <div ref={sentinel} className="h-8" />
-      {query.isFetchingNextPage ? <p className="text-center text-xs text-ink-faint">载入中…</p> : null}
-      {!query.hasNextPage ? <p className="py-4 text-center text-xs text-ink-faint">全部照片已加载</p> : null}
+      {query.isFetchingNextPage ? <p className="text-center text-xs text-ink-faint">正在拿出更多照片…</p> : null}
+      {!query.hasNextPage && photos.length > 0 ? (
+        <p className="hand-note py-6 text-center text-xs text-ink-faint">— 桌上的照片都摆出来了 —</p>
+      ) : null}
     </>
   );
 }

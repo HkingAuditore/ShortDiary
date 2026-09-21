@@ -5,13 +5,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { apiSend, uploadWithTicket, type UploadTicketLike } from "@/lib/api/client";
 import { DEFAULT_ENCODE, processImage, type EncodedImage } from "@/lib/media/process";
-import { PaperButton, TagChip } from "@/components/paper/PaperCard";
+import { PaperButton, TagChip, PolaroidPhoto } from "@/components/paper/PaperCard";
 import { useToast } from "@/components/common/Toast";
 import { queryKeys } from "@/lib/query/keys";
 import type { AssetDescriptor, EntryView } from "@/lib/entry/entry.schema";
 
 /**
- * 记录输入区：像发消息一样写，支持补记日期、图片（Worker 压缩后直传）、标签。
+ * 记录输入区（§3.10.1 / §3.6）：一条干净白纸条，不做过多纹理。
+ * 像发消息一样写：Enter 换行、⌘/Ctrl+Enter 发送、图片拖入即出拍立得预览。
  * 草稿落 IndexedDB —— 关掉浏览器再回来内容还在。
  */
 
@@ -215,10 +216,15 @@ export function Composer({ timezone, today }: ComposerProps) {
         void addFiles(e.dataTransfer.files);
       }}
       className={[
-        "paper-noise relative rounded-(--radius-card) bg-paper-card p-3.5 shadow-(--shadow-paper) transition-colors",
-        dragging ? "ring-2 ring-sage" : "",
+        "paper-noise relative rounded-(--radius-card) bg-paper-strong p-4 shadow-(--shadow-paper) transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
+        // 发送瞬间纸条轻压一下（§3.7「发送记录」）
+        create.isPending ? "translate-y-[2px] shadow-none" : "",
+        dragging ? "ring-2 ring-sage ring-offset-2 ring-offset-paper-bg" : "",
       ].join(" ")}
     >
+      {/* 顶部一条窄窄的胶带：标记「这是正在写的纸条」 */}
+      <span aria-hidden className="tape absolute -top-2 left-8 h-3.5 w-16 rounded-[1px] opacity-70" />
+
       <textarea
         ref={textRef}
         value={content}
@@ -244,40 +250,37 @@ export function Composer({ timezone, today }: ComposerProps) {
       />
 
       {images.length > 0 ? (
-        <ul className="mt-2 flex flex-wrap gap-2">
+        <ul className="mt-3 flex flex-wrap gap-3">
           {images.map((img) => (
             <li key={img.id} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <PolaroidPhoto
                 src={img.previewUrl}
                 alt={img.name}
-                className={[
-                  "h-20 w-20 rounded-[3px] border border-ink/10 object-cover",
-                  img.status === "processing" ? "opacity-40" : "",
-                  img.status === "error" ? "opacity-30 grayscale" : "",
-                ].join(" ")}
-              />
-              {img.status === "processing" ? (
-                <span className="scan-line absolute inset-x-1 bottom-1 h-0.5 animate-pulse rounded-full" />
-              ) : null}
-              <button
-                type="button"
-                aria-label={`移除 ${img.name}`}
-                onClick={() => removeImage(img.id)}
-                className="paper-focus absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-[11px] text-paper-strong"
+                width={96}
+                height={96}
+                seed={img.id}
+                caption={img.status === "error" ? "处理失败" : undefined}
+                className={["w-24", img.status === "processing" ? "opacity-60" : "", img.status === "error" ? "opacity-40 grayscale" : ""].join(" ")}
               >
-                ×
-              </button>
-              {img.status === "error" ? (
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] text-rose">失败</span>
-              ) : null}
+                {img.status === "processing" ? (
+                  <span className="scan-line absolute bottom-2 left-2 right-2 h-0.5 animate-pulse rounded-full" />
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={`移除 ${img.name}`}
+                  onClick={() => removeImage(img.id)}
+                  className="paper-focus absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-[11px] text-paper-strong shadow-[0_2px_5px_rgba(76,58,39,0.35)] transition-transform duration-(--dur-fast) hover:scale-110"
+                >
+                  ×
+                </button>
+              </PolaroidPhoto>
             </li>
           ))}
         </ul>
       ) : null}
 
       {backdating ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-[4px] bg-paper-card/80 px-3 py-2 text-xs text-ink-muted">
           <label className="flex items-center gap-1.5">
             <span>属于哪一天</span>
             <input
@@ -297,7 +300,7 @@ export function Composer({ timezone, today }: ComposerProps) {
               className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-ink"
             />
           </label>
-          <span className="text-ink-faint">{timezone}</span>
+          <span className="hand-note">{timezone}</span>
           <button
             type="button"
             className="paper-focus underline decoration-dotted underline-offset-2"
@@ -313,7 +316,7 @@ export function Composer({ timezone, today }: ComposerProps) {
       ) : null}
 
       {tags.length > 0 ? (
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
           {tags.map((t) => (
             <TagChip key={t} token="sage" onClick={() => setTags((prev) => prev.filter((x) => x !== t))}>
               #{t} ×
@@ -336,7 +339,7 @@ export function Composer({ timezone, today }: ComposerProps) {
             }}
           />
           <PaperButton variant="ghost" onClick={() => fileRef.current?.click()} aria-label="添加图片">
-            图片
+            🖼 图片
           </PaperButton>
           <PaperButton
             variant="ghost"
@@ -346,13 +349,16 @@ export function Composer({ timezone, today }: ComposerProps) {
             }}
             aria-label="补记到某一天"
           >
-            补记
+            📅 补记
           </PaperButton>
         </div>
 
-        <PaperButton variant="primary" disabled={busy || !content.trim()} onClick={() => create.mutate()}>
-          {create.isPending ? "正在记下…" : "记下"}
-        </PaperButton>
+        <div className="flex items-center gap-2.5">
+          <span className="hand-note hidden text-[11px] sm:inline">今天也要记一笔呀</span>
+          <PaperButton variant="primary" disabled={busy || !content.trim()} onClick={() => create.mutate()}>
+            {create.isPending ? "正在记下…" : "记下"}
+          </PaperButton>
+        </div>
       </div>
     </section>
   );

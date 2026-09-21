@@ -18,10 +18,20 @@ export function SideNav({ displayName }: { displayName: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-full w-full flex-col gap-1 px-3 py-4" aria-label="主导航">
-      <Link href="/timeline" className="paper-focus mb-3 flex items-center gap-2 px-2">
-        <span aria-hidden className="inline-block h-4 w-4 rotate-[8deg] bg-sage/70" />
-        <span className="font-(--font-serif-cn) text-lg tracking-wide">剪纸日记</span>
+    <nav className="flex h-full w-full flex-col gap-1 px-3 py-5" aria-label="主导航">
+      <Link href="/timeline" className="paper-focus group mb-4 flex flex-col gap-1 px-2">
+        <span className="flex items-center gap-2.5">
+          {/* Logo：三层叠纸 —— 牛皮纸底 + 撕边米白 + 鼠标悬停时彩色纸片轻跳 */}
+          <span aria-hidden className="relative inline-flex h-9 w-9 items-center justify-center">
+            <span className="absolute inset-0 rotate-[6deg] rounded-[4px] bg-sun/70 transition-transform duration-(--dur-fast) group-hover:rotate-[10deg]" />
+            <span className="absolute inset-0 -rotate-[5deg] rounded-[4px] bg-rose/70 transition-transform duration-(--dur-fast) group-hover:-rotate-[8deg]" />
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-[4px] bg-paper-strong text-base shadow-[0_2px_6px_rgba(76,58,39,0.25)] font-(--font-serif-cn)">
+              剪
+            </span>
+          </span>
+          <span className="font-(--font-serif-cn) text-lg tracking-wide text-ink">剪纸日记</span>
+        </span>
+        <span className="hand-note pl-11 text-[11px]">像发消息一样记下日常</span>
       </Link>
 
       {ITEMS.map((item) => {
@@ -32,21 +42,27 @@ export function SideNav({ displayName }: { displayName: string }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "paper-focus flex items-baseline justify-between rounded-[3px] px-2.5 py-2 text-sm transition-colors",
-              active ? "bg-paper-strong text-ink shadow-(--shadow-paper)" : "text-ink/75 hover:bg-paper-strong/60",
+              "paper-focus relative flex items-baseline justify-between rounded-[4px] px-3 py-2.5 text-sm transition-all duration-(--dur-fast) ease-out",
+              active
+                ? "bg-paper-strong text-ink shadow-(--shadow-paper) -translate-y-[1px]"
+                : "text-ink/75 hover:bg-paper-strong/70 hover:-translate-y-[1px]",
             )}
           >
+            {active ? (
+              /* 当前页标记：左侧一小片冲切彩纸 */
+              <span aria-hidden className="absolute -left-1 top-1/2 h-5 w-2 -translate-y-1/2 rounded-r-[3px] bg-sage shadow-[1px_0_2px_rgba(76,58,39,0.2)]" />
+            ) : null}
             <span>{item.label}</span>
             <span className="text-[11px] text-ink-faint">{item.hint}</span>
           </Link>
         );
       })}
 
-      <div className="mt-auto flex items-center justify-between px-2.5 pt-4 text-xs text-ink-muted">
-        <span className="truncate">{displayName}</span>
+      <div className="mt-auto flex items-center justify-between px-3 pt-6 text-xs text-ink-muted">
+        <span className="hand-note truncate">{displayName}</span>
         <button
           type="button"
-          className="paper-focus underline decoration-dotted underline-offset-2"
+          className="paper-focus underline decoration-dotted underline-offset-2 transition-colors hover:text-ink"
           onClick={() => void signOut({ callbackUrl: "/login" })}
         >
           登出

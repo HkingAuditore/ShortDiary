@@ -72,9 +72,9 @@ export function EntryList({
     estimateSize: (i) => {
       const row = rows[i];
       if (!row) return 200;
-      if (row.kind === "date") return 44;
+      if (row.kind === "date") return 48;
       const base = 120 + Math.min(row.entry.content.length, 600) * 0.11;
-      const images = row.entry.assets.length > 0 ? 200 : 0;
+      const images = row.entry.assets.length > 0 ? 260 : 0;
       return base + images;
     },
     overscan: 6,
@@ -118,7 +118,12 @@ export function EntryList({
   }
 
   if (rows.length === 0) {
-    return <p className="px-1 py-8 text-center text-sm text-ink-muted">{emptyHint}</p>;
+    return (
+      <div className="px-1 py-10 text-center">
+        <p className="hand-note text-base text-ink-muted">{emptyHint}</p>
+        <p className="mt-2 text-xs text-ink-faint">写下的每一个字都会被好好收着</p>
+      </div>
+    );
   }
 
   return (
@@ -141,14 +146,17 @@ export function EntryList({
               style={{ transform: `translateY(${item.start - virtualizer.options.scrollMargin}px)` }}
             >
               {row.kind === "date" ? (
-                <h2 className="flex items-baseline gap-2 px-1 pb-1.5 pt-4 font-(--font-serif-cn) text-sm text-ink-muted">
-                  <span className="text-ink">{relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}</span>
+                /* 日期分隔：日期标签做成一张斜贴的小纸签 */
+                <h2 className="flex items-center gap-2.5 px-1 pb-2 pt-5">
+                  <span className="relative inline-block -rotate-1 rounded-l-[6px] rounded-r-[3px] bg-paper-deep px-2.5 py-1 font-(--font-serif-cn) text-sm text-ink shadow-[0_2px_5px_rgba(76,58,39,0.18)]">
+                    {relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}
+                  </span>
                   {relativeDayLabel(row.date, today) ? (
-                    <span className="text-xs text-ink-faint">{row.date}</span>
+                    <span className="hand-note text-xs text-ink-faint">{row.date}</span>
                   ) : null}
                 </h2>
               ) : (
-                <div className="pb-3">
+                <div className="pb-3.5">
                   <EntryCard entry={row.entry} timezone={timezone} />
                 </div>
               )}
@@ -158,10 +166,10 @@ export function EntryList({
       </ol>
 
       {query.isFetchingNextPage ? (
-        <p className="py-4 text-center text-xs text-ink-faint">正在载入更早的记录…</p>
+        <p className="py-4 text-center text-xs text-ink-faint">正在翻更早的纸页…</p>
       ) : null}
       {!query.hasNextPage && rows.length > 0 ? (
-        <p className="py-6 text-center text-xs text-ink-faint">已经到最开始了</p>
+        <p className="hand-note py-6 text-center text-xs text-ink-faint">— 已经翻到最开始了 —</p>
       ) : null}
     </div>
   );
