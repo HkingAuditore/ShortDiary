@@ -79,13 +79,22 @@ export async function cosExists(key: string): Promise<boolean> {
   }
 }
 
-/** 数据万象：缩略 + 转码（AVIF/WebP 由 Accept 协商后决定） */
-export function ciPreviewUrl(key: string, width: number, format: "avif" | "webp" | "jpg" = "webp"): string {
+/** 数据万象：缩略 + 转码（AVIF/WebP 由 Accept 协商后决定）。
+ * 私有桶下处理参数必须拼在签名 URL 之后（签名只覆盖 key 路径，query 不参与签名），
+ * 否则无签名直拼 imageMogr2 会 403。 */
+export async function ciPreviewUrl(
+  key: string,
+  width: number,
+  format: "avif" | "webp" | "jpg" = "webp",
+): Promise<string> {
   const env = getEnv();
+  const data = await promisify<{ Url: string }>((cb) =>
+    cos().getObjectUrl({ ...bucketConfig(), Key: key, Method: "GET", Expires: 900, Sign: true }, cb as never),
+  );
   const base = env.COS_CDN_DOMAIN
-    ? `https://${env.COS_CDN_DOMAIN}/${key}`
-    : `https://${env.COS_BUCKET}.cos.${env.COS_REGION}.myqcloud.com/${key}`;
-  return `${base}?imageMogr2/thumbnail/${width}/format/${format}/interlace/1`;
+    ? data.Url.replace(/^https?:\/\/[^/]+/, `https://${env.COS_CDN_DOMAIN}`)
+    : data.Url;
+  return `${base}&imageMogr2/thumbnail/${width}/format/${format}/interlace/1`;
 }
 
 export async function cosSmokeTest(): Promise<{ ok: boolean; step: string; detail?: string }> {

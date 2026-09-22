@@ -76,7 +76,11 @@ export async function readUrlFor(key: string, ttl = 900): Promise<string | null>
   return null; // 本地驱动：一律经 /api/media/<assetId> 鉴权后流式返回
 }
 
-export function previewUrlFor(key: string, width: number, format: "avif" | "webp" | "jpg" = "webp"): string | null {
+export async function previewUrlFor(
+  key: string,
+  width: number,
+  format: "avif" | "webp" | "jpg" = "webp",
+): Promise<string | null> {
   if (driverName() === "cos") return ciPreviewUrl(key, width, format);
   return null;
 }
