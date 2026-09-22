@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { serviceContext } from "@/lib/api/context";
@@ -44,7 +45,10 @@ export default async function TimelinePage() {
           <p className="mt-1.5 hand-note text-[11px] text-sage">从上面那条纸开始写吧</p>
         ) : null}
       </AsideCard>
-      <OnThisDay userId={ctx.userId} timezone={ctx.timezone} />
+      {/* 回忆卡是「锦上添花」，不阻塞时间线首屏：流式渲染，晚到晚画 */}
+      <Suspense fallback={null}>
+        <OnThisDay userId={ctx.userId} timezone={ctx.timezone} />
+      </Suspense>
     </>
   );
 

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { auth } from "./auth";
 import { AppError } from "@/lib/errors/app-error";
 import { getDb } from "@/lib/db/client";
@@ -8,6 +9,7 @@ import type { User } from "@/lib/db/schema";
 /**
  * 会话边界：所有 API 与页面都必须从这里拿 userId，
  * 永不接受客户端传入的 user_id（Zod schema 也会 strip 掉该字段）。
+ * cache()：同一次请求内（layout + page + 各 service 多处调用）只查一次 users 表。
  */
 
 export interface SessionUser {
@@ -18,7 +20,7 @@ export interface SessionUser {
   preferences: User["preferences"];
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export async function _getSessionUser(): Promise<SessionUser | null> {
   const session = await auth();
   const id = session?.user?.id;
   if (!id) return null;
@@ -36,6 +38,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     preferences: user.preferences ?? {},
   };
 }
+
+export const getSessionUser = cache(_getSessionUser);
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getSessionUser();

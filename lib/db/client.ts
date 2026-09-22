@@ -24,10 +24,11 @@ async function createDatabase(): Promise<Database> {
   if (url) {
     const postgres = (await import("postgres")).default;
     // Neon 等 serverless Postgres 的 pgbouncer 端点（连接串含 "pooler"）走事务模式，
-    // 不支持 prepared statements，且每个函数实例不该囤连接——按 host 自适应。
+    // 不支持 prepared statements。事务模式下连接无会话状态，可放少量并行：
+    // RSC 页面请求与浏览器并发 API（如相册页多请求）不至于在单连接上排队。
     const pooled = /pooler/i.test(url);
     const client = postgres(url, {
-      max: pooled ? 1 : 10,
+      max: pooled ? 3 : 10,
       idle_timeout: 20,
       connect_timeout: 10,
       prepare: !pooled,
