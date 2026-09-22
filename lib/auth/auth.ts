@@ -13,6 +13,12 @@ import { verifyPassword } from "@/lib/crypto/envelope";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  // EdgeOne 网关把 https 请求以 x-forwarded-proto: http 转发给函数，
+  // auth()（RSC/API 合成请求）据此推断出"非安全 Cookie 名"（不带 __Secure- 前缀），
+  // 与 handler 写入的 __Secure- 前缀 Cookie 对不上，导致登录后仍被当作未登录。
+  // 显式固定：生产环境一律用安全 Cookie 名，不再依赖平台转发的协议头。
+  // Vercel（https）行为不变；本地 dev（http://localhost）仍用非安全名。
+  useSecureCookies: process.env.NODE_ENV === "production",
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   pages: { signIn: "/login" },
   providers: [
