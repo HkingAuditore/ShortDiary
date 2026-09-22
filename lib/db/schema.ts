@@ -39,6 +39,19 @@ export interface UserPreferences {
   autoAnnotate?: boolean;
 }
 
+/** 邀请码：一码一人，used_by 置位即失效（对应迁移 0005） */
+export const inviteCodes = pgTable("invite_codes", {
+  id: uuid("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  /** 生成者（审计用） */
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  /** 使用者；非空即已消耗 */
+  usedBy: uuid("used_by").references(() => users.id, { onDelete: "set null" }),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  ...timestamps,
+});
+
 export const entries = pgTable(
   "entries",
   {
