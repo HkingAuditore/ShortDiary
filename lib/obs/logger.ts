@@ -23,7 +23,13 @@ const REDACT_PATHS = [
   "*.messages",
 ];
 
-const level = process.env.LOG_LEVEL ?? "info";
+const VALID_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"] as const;
+
+// 防御：LOG_LEVEL 为空串/非法值时回退 info——
+// pino 收到空字符串 level 会在模块加载期直接抛
+// "default level: must be included in custom levels"（Vercel 实测踩坑）。
+const rawLevel = (process.env.LOG_LEVEL ?? "").trim();
+const level = (VALID_LEVELS as readonly string[]).includes(rawLevel) ? rawLevel : "info";
 
 export const logger = pino({
   level,

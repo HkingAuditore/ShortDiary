@@ -34,7 +34,10 @@ const schema = z.object({
   APP_MASTER_KEY: base64Key,
   AUTH_SECRET: z.string().min(16),
   APP_ORIGIN: z.string().url().default("http://localhost:3000"),
-  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+  LOG_LEVEL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+  ),
 
   COS_SECRET_ID: optionalString,
   COS_SECRET_KEY: optionalString,
