@@ -71,6 +71,7 @@ export function RegisterForm() {
             <span className="text-ink-muted">邀请码</span>
             <input
               className={INPUT_CLASS}
+              name="inviteCode"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               autoComplete="off"
@@ -82,6 +83,7 @@ export function RegisterForm() {
             <span className="text-ink-muted">账号</span>
             <input
               className={INPUT_CLASS}
+              name="loginId"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               autoComplete="username"
@@ -94,6 +96,7 @@ export function RegisterForm() {
             <input
               type="password"
               className={INPUT_CLASS}
+              name="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -106,6 +109,7 @@ export function RegisterForm() {
             <input
               type="password"
               className={INPUT_CLASS}
+              name="confirm-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="new-password"

@@ -4,7 +4,6 @@ import { getDb } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/crypto/envelope";
-import { AppError } from "@/lib/errors/app-error";
 
 /**
  * Auth.js v5 + Credentials + JWT session strategy。
@@ -26,14 +25,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const loginId = String(credentials?.loginId ?? "").trim();
         const password = String(credentials?.password ?? "");
-        if (!loginId || !password) throw new AppError("INVALID_INPUT", "请输入账号与密码");
+        // 凭证错误必须 return null（v5 约定）：next-auth 会转成标准的
+        // CredentialsSignin → ?error=CredentialsSignin。若在这里 throw AppError，
+        // v5 会归类为 error=Configuration（"配置错误"），语义全错。
+        if (!loginId || !password) return null;
 
         const db = await getDb();
         const rows = await db.select().from(users).where(eq(users.loginId, loginId)).limit(1);
         const user = rows[0];
-        if (!user || !verifyPassword(password, user.passwordHash)) {
-          throw new AppError("UNAUTHENTICATED", "账号或密码不正确");
-        }
+        if (!user || !verifyPassword(password, user.passwordHash)) return null;
         return { id: user.id, name: user.displayName, email: user.email ?? undefined };
       },
     }),

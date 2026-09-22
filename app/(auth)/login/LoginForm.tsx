@@ -17,7 +17,13 @@ export function LoginForm() {
     try {
       const res = await signIn("credentials", { loginId, password, redirect: false });
       if (res?.error) {
-        toast.push("账号或密码不正确", { tone: "error" });
+        // Configuration = 服务端配置/依赖异常（区别于凭证错误）
+        toast.push(
+          res.code === "Configuration" || res.error === "Configuration"
+            ? "服务暂时不可用，请稍后再试"
+            : "账号或密码不正确",
+          { tone: "error" },
+        );
       } else {
         window.location.href = "/timeline";
       }
@@ -52,6 +58,7 @@ export function LoginForm() {
             <span className="text-ink-muted">账号</span>
             <input
               className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+              name="loginId"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               autoComplete="username"
@@ -63,6 +70,7 @@ export function LoginForm() {
             <input
               type="password"
               className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
