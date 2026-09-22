@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none" role="img">
+<defs><filter id="sh1" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#4c3a27" flood-opacity="0.2"/>
+</filter></defs>
+<g filter="url(#sh1)"><path d="M66 84 L30 54 L58 92 Z" fill="#3f3933"/><path d="M60 78 C50 52 72 34 98 38 C122 42 130 62 122 80 C114 96 88 102 72 94 C64 90 62 86 60 78 Z" fill="#3f3933"/><path d="M120 50 L140 57 L119 64 Z" fill="#d9a23e"/></g><g filter="url(#sh1)"><path d="M76 62 C88 44 110 44 118 54 C108 70 90 74 76 62 Z" fill="#fff9ef"/></g><circle cx="108" cy="50" r="2.6" fill="#f7f1e7"/><path d="M88 98 L86 112 M100 96 L102 112" stroke="#3f3933" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,216 @@
+/**
+ * Paper Journal 精修动效与纸感增强（并入 globals.css）
+ * ------------------------------------------------------------------
+ * 与 globals.css 的关系：
+ *  - 色板 / 时长 token 同名对齐，直接合并 @theme 与 :root 即可；
+ *  - 原 paper-drop / photo-settle 保留为兜底，本文件是「精修层」；
+ *  - simpleMode（html[data-simple="true"]）同步关闭撕边与纹理。
+ *
+ * 设计原则（§3.7 延续）：
+ *  - 只动 transform / opacity / filter，不动布局属性；
+ *  - 快反馈 150ms，常规 220ms，进场 280–550ms（弹簧曲线允许更长）；
+ *  - stagger 错峰 70–90ms，队列感来自节奏而非延迟堆积；
+ *  - prefers-reduced-motion 全部关闭（globals.css 已有全局规则，不重复）。
+ */
+
+/* ───────────────────────── Token 追加 ───────────────────────── */
+
+:root {
+  /* 弹簧曲线：过冲回落，纸片落桌的物理感 */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* 轻弹簧：小幅过冲，用于 hover / 贴合 */
+  --ease-spring-soft: cubic-bezier(0.3, 1.2, 0.4, 1);
+  --dur-enter-long: 420ms;
+
+  /* 纤维撕边 mask（SVG feTurbulence 位移，四个种子变体）。
+     用法：替换原 .torn-1..4 的 clip-path；同卡片仍按种子固定变体。 */
+  --torn-fiber-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+  --torn-fiber-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='13' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+  --torn-fiber-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='29' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+  --torn-fiber-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='41' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+
+  /* 蜡笔高亮底衬（data-uri，过蜡笔滤镜的粗糙色块） */
+  --crayon-hl-sun: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 56' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='c' x='-10%25' y='-10%25' width='120%25' height='120%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.06' numOctaves='3' seed='5' result='w'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='w' scale='6' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='2' seed='9'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15' result='s'/%3E%3CfeComposite in='d' in2='s' operator='in'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M12 20 C90 10 200 26 290 16 L288 40 C196 48 92 32 14 42 Z' fill='%23e9b64f' fill-opacity='.55' filter='url(%23c)'/%3E%3C/svg%3E");
+  --crayon-hl-rose: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 56' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='c' x='-10%25' y='-10%25' width='120%25' height='120%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.06' numOctaves='3' seed='6' result='w'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='w' scale='6' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='2' seed='10'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15' result='s'/%3E%3CfeComposite in='d' in2='s' operator='in'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M12 20 C90 10 200 26 290 16 L288 40 C196 48 92 32 14 42 Z' fill='%23d88e86' fill-opacity='.5' filter='url(%23c)'/%3E%3C/svg%3E");
+}
+
+/* ───────────────────────── 纤维撕边（替换 clip-path 版 .torn-1..4） ───────────────────────── */
+
+.torn-fiber-1 { -webkit-mask-image: var(--torn-fiber-1); mask-image: var(--torn-fiber-1); }
+.torn-fiber-2 { -webkit-mask-image: var(--torn-fiber-2); mask-image: var(--torn-fiber-2); }
+.torn-fiber-3 { -webkit-mask-image: var(--torn-fiber-3); mask-image: var(--torn-fiber-3); }
+.torn-fiber-4 { -webkit-mask-image: var(--torn-fiber-4); mask-image: var(--torn-fiber-4); }
+.torn-fiber-1, .torn-fiber-2, .torn-fiber-3, .torn-fiber-4 {
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+html[data-simple="true"] .torn-fiber-1,
+html[data-simple="true"] .torn-fiber-2,
+html[data-simple="true"] .torn-fiber-3,
+html[data-simple="true"] .torn-fiber-4 {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* 撕边卡配投影：mask 会裁掉 box-shadow，必须用 drop-shadow 跟随撕边形状 */
+.torn-shadow { filter: drop-shadow(0 10px 16px rgba(76, 58, 39, 0.24)); }
+
+/* ───────────────────────── 错位衬纸（纸叠厚度） ───────────────────────── */
+
+/* 用法：给 PaperCard 加 .paper-stack；父级自动建立层叠上下文 */
+.paper-stack { position: relative; isolation: isolate; }
+.paper-stack::before,
+.paper-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-paper-deep, #c2a075);
+  border-radius: 3px;
+  -webkit-mask-image: inherit;
+  mask-image: inherit;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  opacity: var(--torn-opacity, 1);
+}
+.paper-stack::before {
+  transform: rotate(-0.9deg) translate(-4px, 3px);
+  filter: drop-shadow(0 4px 7px rgba(76, 58, 39, 0.16));
+}
+.paper-stack::after {
+  transform: rotate(0.7deg) translate(5px, -2px);
+  opacity: calc(var(--torn-opacity, 1) * 0.85);
+  filter: drop-shadow(0 3px 5px rgba(76, 58, 39, 0.12));
+}
+html[data-simple="true"] .paper-stack::before,
+html[data-simple="true"] .paper-stack::after { display: none; }
+
+/* ───────────────────────── 蜡笔高亮（文字底衬） ───────────────────────── */
+
+.crayon-hl {
+  background-image: var(--crayon-hl-sun);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  padding: 2px 0.35em;
+  margin: 0 -0.1em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.crayon-hl-rose { background-image: var(--crayon-hl-rose); }
+html[data-simple="true"] .crayon-hl,
+html[data-simple="true"] .crayon-hl-rose {
+  background-image: none;
+  background-color: rgba(233, 182, 79, 0.22);
+}
+
+/* ───────────────────────── 精修动效 ───────────────────────── */
+
+/* ① 弹簧落纸：替代 paper-drop 的线性进出，带过冲与落定微转角 */
+@keyframes drop-spring {
+  0% { opacity: 0; transform: translateY(26px) rotate(2.5deg); }
+  55% { opacity: 1; transform: translateY(-5px) rotate(-1.2deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+}
+.drop-spring { animation: drop-spring var(--dur-enter-long) var(--ease-spring-soft) both; }
+
+/* ② 胶带粘贴：从左往右拉开 + 角度回弹（transform-origin 在左端） */
+@keyframes tape-stick {
+  0% { opacity: 0; transform: scaleX(0.25) rotate(-14deg); }
+  70% { opacity: 1; transform: scaleX(1.06) rotate(2deg); }
+  100% { opacity: 0.92; transform: scaleX(1) rotate(-2deg); }
+}
+.tape-stick {
+  transform-origin: left center;
+  animation: tape-stick 400ms var(--ease-spring-soft) both;
+}
+
+/* ③ 蜡笔描画：手绘/蜡笔线条的「画上去」。
+   --len 设为路径总长（可用 el.getTotalLength() 在运行时精确设置） */
+@keyframes crayon-draw { to { stroke-dashoffset: 0; } }
+.crayon-draw {
+  stroke-dasharray: var(--len, 600);
+  stroke-dashoffset: var(--len, 600);
+  animation: crayon-draw 900ms cubic-bezier(0.3, 0.6, 0.35, 1) both;
+}
+.crayon-draw-echo { animation-delay: 120ms; }
+
+/* ④ 纸页翻开：Modal / 详情层进场，阴影随翻起高度同步 */
+@keyframes unfold-in {
+  0% { opacity: 0; transform: rotateX(32deg) translateY(12px); box-shadow: 0 2px 4px rgba(76, 58, 39, 0.1); }
+  100% { opacity: 1; transform: rotateX(0deg) translateY(0); box-shadow: var(--shadow-paper); }
+}
+.unfold-in {
+  transform-origin: top center;
+  animation: unfold-in var(--dur-enter-long) var(--ease-paper) both;
+}
+.unfold-host { perspective: 800px; }
+
+/* ⑤ 微风摇曳：挂在胶带 / 绳上的元素（相册、拍立得） */
+@keyframes flutter {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.8deg); }
+}
+.flutter {
+  transform-origin: top center;
+  animation: flutter 3.2s ease-in-out infinite;
+}
+
+/* ⑥ 依次落下：列表进场，子元素按 --i 错峰 */
+@keyframes drop-queue {
+  0% { opacity: 0; transform: translateY(22px) rotate(2deg); }
+  60% { opacity: 1; transform: translateY(-3px) rotate(-0.8deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+}
+.drop-queue > * {
+  animation: drop-queue 500ms var(--ease-spring-soft) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+/* ⑦ 星星收藏：替代 hover:scale 的弹性收星 */
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  80% { transform: scale(0.92) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.star-pop { animation: star-pop 550ms var(--ease-spring) both; }
+
+/* ⑧ 墨点思考（升级 ink-dot：上浮 + 放大，而非纯闪动） */
+@keyframes ink-dot-2 {
+  0%, 70%, 100% { opacity: 0.2; transform: translateY(0) scale(1); }
+  35% { opacity: 1; transform: translateY(-4px) scale(1.15); }
+}
+.ink-dot-2 {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: ink-dot-2 1.3s ease-in-out infinite;
+}
+.ink-dot-2:nth-child(2) { animation-delay: 180ms; }
+.ink-dot-2:nth-child(3) { animation-delay: 360ms; }
+
+/* ───────────────────────── 蜡笔滤镜（内联 SVG defs 引用） ───────────────────────── */
+/*
+ * 素材 SVG 内已内置滤镜；如需给任意 DOM 元素上蜡笔质感，
+ * 在页面根部内联一次（assets/ 里的文件已有，勿重复 id）：
+ *
+ * <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ *   <filter id="fx-crayon" x="-15%" y="-15%" width="130%" height="130%"
+ *           color-interpolation-filters="sRGB">
+ *     <feTurbulence type="fractalNoise" baseFrequency="0.028 0.05"
+ *                   numOctaves="3" seed="7" result="wob"/>
+ *     <feDisplacementMap in="SourceGraphic" in2="wob" scale="5"
+ *                        xChannelSelector="R" yChannelSelector="G" result="d1"/>
+ *     <feTurbulence type="fractalNoise" baseFrequency="0.30"
+ *                   numOctaves="2" seed="14" result="grain"/>
+ *     <feColorMatrix in="grain" type="matrix"
+ *       values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15" result="spek"/>
+ *     <feComposite in="d1" in2="spek" operator="in"/>
+ *   </filter>
+ * </svg>
+ *
+ * .crayon-fx { filter: url(#fx-crayon); }
+ */

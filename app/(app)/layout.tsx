@@ -13,13 +13,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session?.user?.id) redirect("/login");
 
   return (
-    <div className="flex min-h-screen bg-paper-bg">
-      <aside className="corrugated paper-hills sticky top-0 hidden h-screen w-60 shrink-0 border-r border-ink/10 md:block">
+    <div className="paper-app-shell flex min-h-screen bg-paper-bg">
+      <aside className="paper-sidebar sticky top-0 hidden h-screen w-60 shrink-0 border-r border-ink/10 md:block">
         <SideNav displayName={session.user.name ?? "我"} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 md:px-8 md:pb-10">{children}</main>
+        <main className="paper-main-stage mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 md:px-8 md:pb-10">
+          <span aria-hidden className="paper-scene-note hidden lg:block" />
+          {children}
+        </main>
         <MobileNav />
       </div>
 

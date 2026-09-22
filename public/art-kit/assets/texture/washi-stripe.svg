@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 76" fill="none" role="img">
+<defs><filter id="fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="0.028 0.05" numOctaves="3" seed="3" result="wob"/>
+<feDisplacementMap in="SourceGraphic" in2="wob" scale="5" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.30" numOctaves="2" seed="10" result="grain"/>
+<feColorMatrix in="grain" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15" result="spek"/>
+<feComposite in="d1" in2="spek" operator="in"/>
+</filter><pattern id="wp" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)"><rect width="18" height="18" fill="#f2e2b8" opacity="0.92"/><rect width="9" height="18" fill="#e9b64f" opacity="0.5"/></pattern></defs>
+<path d="M16 7.2L31.6 3.1L47.3 5.1L62.9 2.6L78.7 6.1L94.3 4.2L110 3.9L124.9 2.7L139.7 3.9L154.4 6.1L169.3 4.7L186.3 7L182.8 18.5L184.1 30L183.4 41.1L183.9 51.7L186 59.1L184 64.9L169.2 67.8L154.4 66.2L139.6 67.7L124.7 66.5L110 68.8L94.2 71.2L78.7 65.9L63 68.6L47.4 64.6L31.7 65L15.6 66L16.2 54.9L12.1 43.8L14.3 33.9L17.2 24L13.2 15L16 6Z" fill="url(#wp)" filter="url(#fx)"/>
+</svg>

@@ -19,7 +19,7 @@ export function SideNav({ displayName }: { displayName: string }) {
 
   return (
     <nav className="flex h-full w-full flex-col gap-1 px-3 py-5" aria-label="主导航">
-      <Link href="/timeline" className="paper-focus group mb-4 flex flex-col gap-1 px-2">
+      <Link href="/timeline" className="paper-nav-brand paper-focus group mb-4 flex flex-col gap-1 px-2">
         <span className="flex items-center gap-2.5">
           {/* Logo：三层叠纸 —— 牛皮纸底 + 撕边米白 + 鼠标悬停时彩色纸片轻跳 */}
           <span aria-hidden className="relative inline-flex h-9 w-9 items-center justify-center">

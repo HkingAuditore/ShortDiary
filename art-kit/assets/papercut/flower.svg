@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 170" fill="none" role="img">
+<defs><filter id="sh1" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.16"/>
+</filter><filter id="sh2" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.18"/>
+</filter><filter id="sh3" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.2"/>
+</filter></defs>
+<g filter="url(#sh1)"><ellipse cx="98.4" cy="102.4" rx="15" ry="40" transform="rotate(135 98.4 102.4)" fill="#e4aca5"/><ellipse cx="61.6" cy="102.4" rx="15" ry="40" transform="rotate(225 61.6 102.4)" fill="#e4aca5"/><ellipse cx="61.6" cy="65.6" rx="15" ry="40" transform="rotate(315 61.6 65.6)" fill="#e4aca5"/><ellipse cx="98.4" cy="65.6" rx="15" ry="40" transform="rotate(405 98.4 65.6)" fill="#e4aca5"/></g><g filter="url(#sh2)"><ellipse cx="104" cy="84" rx="14" ry="34" transform="rotate(90 104 84)" fill="#d88e86"/><ellipse cx="80" cy="108" rx="14" ry="34" transform="rotate(180 80 108)" fill="#d88e86"/><ellipse cx="56" cy="84" rx="14" ry="34" transform="rotate(270 56 84)" fill="#d88e86"/><ellipse cx="80" cy="60" rx="14" ry="34" transform="rotate(360 80 60)" fill="#d88e86"/></g><g filter="url(#sh3)"><circle cx="80" cy="84" r="15" fill="#e9b64f"/><circle cx="80" cy="84" r="15" fill="none" stroke="#d9a23e" stroke-width="2.5" opacity="0.6"/></g><path d="M80 100 C80 120 78 138 80 154" stroke="#5d7a61" stroke-width="4" fill="none" stroke-linecap="round"/><g filter="url(#sh1)"><ellipse cx="58" cy="132" rx="16" ry="7" transform="rotate(-28 58 132)" fill="#6e8b72"/><ellipse cx="102" cy="146" rx="16" ry="7" transform="rotate(24 102 146)" fill="#8fa78f"/></g>
+</svg>

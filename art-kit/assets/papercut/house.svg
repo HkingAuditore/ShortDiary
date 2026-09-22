@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 175" fill="none" role="img">
+<defs><filter id="sh1" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#4c3a27" flood-opacity="0.16"/>
+</filter><filter id="sh2" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#4c3a27" flood-opacity="0.2"/>
+</filter><filter id="sh3" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.18"/>
+</filter></defs>
+<g filter="url(#sh2)"><path d="M16 82 L85 18 L154 82 Z" fill="#c47a71"/></g><g filter="url(#sh1)"><rect x="30" y="80" width="110" height="84" fill="#fff9ef"/></g><g filter="url(#sh2)"><rect x="118" y="34" width="14" height="26" fill="#f2e7d5"/></g><g filter="url(#sh3)"><rect x="70" y="112" width="28" height="52" rx="2" fill="#6e8b72"/></g><g filter="url(#sh3)"><rect x="42" y="96" width="20" height="20" fill="#e9b64f"/><rect x="106" y="96" width="20" height="20" fill="#e9b64f"/></g><path d="M52 96 V116 M42 106 H62 M116 96 V116 M106 106 H126" stroke="#3f3933" stroke-width="2" opacity="0.65"/><circle cx="92" cy="140" r="2.6" fill="#fff9ef"/>
+</svg>

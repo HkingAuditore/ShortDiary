@@ -194,6 +194,8 @@ export function Composer({ timezone, today }: ComposerProps) {
       void qc.invalidateQueries({ queryKey: queryKeys.entries.all });
       void qc.invalidateQueries({ queryKey: queryKeys.tags.all });
       toast.push("记下了", { tone: "success" });
+      // 新记录插在列表顶部：回到页首让它立即可见，而不是停在原滚动位置"看起来没更新"
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (err: Error) => {
       toast.push(err.message, { tone: "error" });
@@ -216,7 +218,7 @@ export function Composer({ timezone, today }: ComposerProps) {
         void addFiles(e.dataTransfer.files);
       }}
       className={[
-        "paper-noise relative rounded-(--radius-card) bg-paper-strong p-4 shadow-(--shadow-paper) transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
+        "paper-composer paper-noise relative rounded-(--radius-card) p-4 transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
         // 发送瞬间纸条轻压一下（§3.7「发送记录」）
         create.isPending ? "translate-y-[2px] shadow-none" : "",
         dragging ? "ring-2 ring-sage ring-offset-2 ring-offset-paper-bg" : "",

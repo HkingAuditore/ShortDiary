@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 60" fill="none" role="img">
+<defs><filter id="fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="0.028 0.05" numOctaves="3" seed="12" result="wob"/>
+<feDisplacementMap in="SourceGraphic" in2="wob" scale="5" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.30" numOctaves="2" seed="19" result="grain"/>
+<feColorMatrix in="grain" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15" result="spek"/>
+<feComposite in="d1" in2="spek" operator="in"/>
+</filter></defs>
+<path d="M18 14.9L33.2 13.1L48.7 15.1L64.1 16.3L79.3 11.5L94.6 10.1L109.9 13L124.2 13.6L138.6 14L152.8 15.8L167.3 13L181.3 18.5L195.8 16.2L210 18.1L225.4 18.6L240.7 17.5L256 16.2L271.4 16.9L286.8 17.3L303.3 13.9L304 27.9L303.9 40L289.2 43.2L274.3 43.5L259.5 45.1L244.6 46.2L229.7 45.4L214.9 47.7L200 47.2L185.1 46.5L170.3 45.8L155.4 46L140.6 43.2L125.7 42.5L110.8 43.7L96 41.8L80 43.2L64 44.1L48 43.7L32 42.3L14.3 43.9L14.5 29.8L18 16Z" fill="#d88e86" opacity="0.55" filter="url(#fx)"/>
+</svg>

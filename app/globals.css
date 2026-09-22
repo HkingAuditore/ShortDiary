@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../art-kit/paper-motion.css";
 
 /**
  * 剪纸设计系统的唯一 Token 来源（设计文档 §3.4 / §3.7）。
@@ -31,8 +32,10 @@
 }
 
 :root {
-  --paper-noise-opacity: 0.05;
+  --paper-noise-opacity: 0.085;
   --torn-opacity: 1;
+  --paper-edge: rgba(95, 68, 42, 0.18);
+  --paper-stage-glow: rgba(255, 248, 232, 0.42);
   /* 动效时长 Token（§3.7）：快反馈 150ms，常规 220ms，进场 280ms */
   --dur-fast: 150ms;
   --dur-normal: 220ms;
@@ -52,12 +55,210 @@ body {
 }
 
 body {
-  background-color: var(--color-paper-bg);
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 72% -10%, rgba(255, 239, 186, 0.38), transparent 34rem),
+    radial-gradient(circle at 4% 72%, rgba(111, 139, 114, 0.18), transparent 28rem),
+    var(--color-paper-bg);
   color: var(--color-ink);
   font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url("/art-kit/assets/texture/paper-grain.svg");
+  background-size: 256px 256px;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 0 42%, rgba(255,255,255,.08) 50%, transparent 58%);
+  opacity: 0.65;
+}
+
+.paper-app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}
+
+.paper-app-shell::before {
+  content: "";
+  position: fixed;
+  inset: auto 0 0;
+  height: 165px;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/art-kit/assets/papercut/hills.svg") bottom center / cover no-repeat;
+  opacity: 0.5;
+  filter: saturate(0.82);
+}
+
+.paper-main-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-main-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0.85rem 1rem auto;
+  height: 6rem;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    url("/art-kit/assets/papercut/sun.svg") right 3% top / 5.8rem auto no-repeat,
+    url("/art-kit/assets/papercut/cloud.svg") left 1% top 1.2rem / 7rem auto no-repeat;
+  opacity: 0.26;
+}
+
+.paper-scene-note {
+  position: absolute;
+  right: 1.75rem;
+  top: 1.5rem;
+  width: 7rem;
+  height: 3rem;
+  transform: rotate(3deg);
+  background: var(--color-paper-strong);
+  box-shadow: 0 7px 15px rgba(76, 58, 39, 0.12);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.paper-scene-note::after {
+  content: "今天也要留一笔";
+  position: absolute;
+  inset: .55rem .65rem;
+  color: var(--color-ink-muted);
+  font: 12px/1.35 var(--font-hand);
+}
+
+.paper-sidebar {
+  /* 定位交给布局层的 sticky（Tailwind）——这里不能再写 position：
+     手写规则未分层，会覆盖 @layer utilities 里的 .sticky，导致侧栏随页面滚走 */
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 228, 0.16), transparent 45%),
+    url("/art-kit/assets/texture/corrugated.svg") center / 420px 420px,
+    var(--color-paper-bg-deep);
+  box-shadow: inset -12px 0 22px rgba(76, 58, 39, 0.08);
+}
+
+.paper-sidebar::after {
+  content: "";
+  position: absolute;
+  inset: auto -1rem 0;
+  height: 10rem;
+  pointer-events: none;
+  background:
+    url("/art-kit/assets/papercut/plant.svg") 12% bottom / 7rem auto no-repeat,
+    url("/art-kit/assets/papercut/hills.svg") center bottom / 180% auto no-repeat;
+  opacity: 0.76;
+}
+
+.paper-nav-brand {
+  position: relative;
+}
+
+.paper-nav-brand::after {
+  content: "";
+  position: absolute;
+  left: 2.9rem;
+  right: 1rem;
+  bottom: -0.35rem;
+  height: 0.4rem;
+  background: url("/art-kit/assets/crayon/underline.svg") center / 100% 100% no-repeat;
+  opacity: 0.58;
+}
+
+.paper-composer {
+  border: 1px solid rgba(95, 68, 42, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.44), transparent 45%),
+    var(--color-paper-strong);
+  box-shadow: 0 12px 28px rgba(76, 58, 39, 0.16), 0 1px 0 rgba(255,255,255,.7) inset;
+}
+
+.paper-composer::after {
+  content: "";
+  position: absolute;
+  right: 1.25rem;
+  top: 0.9rem;
+  width: 4rem;
+  height: 2.6rem;
+  pointer-events: none;
+  background: url("/art-kit/assets/handdrawn/star-doodle.svg") center / contain no-repeat;
+  opacity: 0.2;
+  transform: rotate(8deg);
+}
+
+.paper-entry-card {
+  border-left: 3px solid rgba(110, 139, 114, 0.36);
+}
+
+.paper-date-tab {
+  position: relative;
+  background: var(--color-paper-deep);
+}
+
+.paper-date-tab::after {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  right: 0.35rem;
+  bottom: -0.28rem;
+  height: 0.28rem;
+  background: rgba(76, 58, 39, 0.12);
+  clip-path: polygon(0 0, 100% 18%, 94% 100%, 56% 70%, 24% 100%);
+}
+
+.paper-login-stage {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(255, 247, 224, .72), transparent 24rem),
+    linear-gradient(180deg, transparent 65%, rgba(91, 117, 91, .12));
+}
+
+.paper-login-stage::before,
+.paper-login-stage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.7;
+}
+
+.paper-login-stage::before {
+  left: 7%;
+  bottom: 10%;
+  width: 10rem;
+  height: 10rem;
+  background: url("/art-kit/assets/handdrawn/cat.svg") center / contain no-repeat;
+  transform: rotate(-6deg);
+}
+
+.paper-login-stage::after {
+  right: 8%;
+  top: 12%;
+  width: 9rem;
+  height: 9rem;
+  background: url("/art-kit/assets/papercut/butterfly.svg") center / contain no-repeat;
+  transform: rotate(9deg);
 }
 
 /* ───────────────────────── 纸纤维纹理（低透明度 overlay，不承载文字） ───────────────────────── */
@@ -72,6 +273,17 @@ body {
   opacity: var(--paper-noise-opacity);
   mix-blend-mode: multiply;
   border-radius: inherit;
+}
+
+.paper-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--paper-edge);
+  border-radius: inherit;
+  opacity: 0.7;
+  mix-blend-mode: multiply;
 }
 
 /* ───────────────────────── 撕边：4 种预生成变体循环（禁止逐卡片随机路径） ───────────────────────── */
@@ -130,16 +342,39 @@ body {
 @keyframes paper-drop {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(18px) rotate(1.2deg);
+    filter: saturate(0.8);
   }
+  68% { transform: translateY(-3px) rotate(-0.35deg); }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: saturate(1);
   }
 }
 .paper-drop {
-  animation: paper-drop var(--dur-enter) var(--ease-paper) both;
+  animation: paper-drop var(--dur-enter-long, 420ms) var(--ease-spring-soft, var(--ease-paper)) both;
 }
+
+.paper-stack {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-stack::before,
+.paper-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--color-paper-deep);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.paper-stack::before { transform: rotate(-0.8deg) translate(-4px, 3px); }
+.paper-stack::after { transform: rotate(0.65deg) translate(4px, -2px); opacity: 0.12; }
 
 /* 图片落在桌面上：scale .96→1 + 轻微角度 */
 @keyframes photo-settle {
@@ -180,7 +415,26 @@ body {
     rgba(110, 139, 114, 0.14) 50%,
     transparent 65%
   );
-  animation: ai-scan 1.5s ease-in-out infinite;
+  animation: ai-scan 1.75s ease-in-out infinite;
+  mix-blend-mode: multiply;
+}
+
+.crayon-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.crayon-underline::after {
+  content: "";
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  bottom: -0.18em;
+  height: 0.42em;
+  z-index: -1;
+  background: url("/art-kit/assets/crayon/underline.svg") center / 100% 100% no-repeat;
+  opacity: 0.85;
+  transform: rotate(-1.5deg);
 }
 
 /* 三点墨迹：AI 思考时的低调指示 */
@@ -225,6 +479,35 @@ html[data-simple="true"] .paper-hills {
   background-image: none;
 }
 
+/* ───────────────────────── 移动端底部导航：与侧栏同语言的瓦楞纸底 ───────────────────────── */
+
+/* 旧写法 corrugated + paper-hills 双类的 background-image 会互相整层覆盖，
+   统一收敛到这里：亮纸底 + 纹理/山峦压到 30% —— 纹理全量铺满会把底色压成深褐，
+   11px 灰字在上面完全看不清；导航首先是可用性，氛围感让位 */
+.paper-mobile-nav {
+  background: var(--color-paper-card);
+  box-shadow: 0 -6px 18px rgba(76, 58, 39, 0.12);
+}
+
+.paper-mobile-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    url("/art-kit/assets/papercut/hills.svg") center bottom / 220% auto no-repeat,
+    url("/art-kit/assets/texture/corrugated.svg") center / 240px 240px;
+  opacity: 0.3;
+}
+
+html[data-simple="true"] .paper-mobile-nav {
+  background: var(--color-paper-card);
+}
+
+html[data-simple="true"] .paper-mobile-nav::before {
+  display: none;
+}
+
 /* ───────────────────────── Reduced motion（§3.9） ───────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -235,4 +518,14 @@ html[data-simple="true"] .paper-hills {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+html[data-simple="true"] body::before,
+html[data-simple="true"] body::after,
+html[data-simple="true"] .paper-app-shell::before,
+html[data-simple="true"] .paper-main-stage::before,
+html[data-simple="true"] .paper-scene-note,
+html[data-simple="true"] .paper-stack::before,
+html[data-simple="true"] .paper-stack::after {
+  display: none;
 }

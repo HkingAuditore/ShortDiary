@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纸间美术馆 · ShortDiary 美术素材库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css" rel="stylesheet">
+<style>
+/* ═════════════════════════ Token（与 globals.css 对齐） ═════════════════════════ */
+:root {
+  --paper-bg: #d8b98f; --paper-bg-deep: #cfae82; --paper-deep: #c2a075; --paper-corrugated: #b8905f;
+  --card: #f7f1e7; --strong: #fff9ef; --tint: #f2e7d5;
+  --ink: #3f3933; --ink-muted: #7f7469; --ink-faint: #a89a8c;
+  --sage: #6e8b72; --sun: #e9b64f; --rose: #d88e86; --sky: #79a9bc;
+  --ease-paper: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 150ms; --dur-normal: 220ms; --dur-enter: 280ms;
+  --font-body: "LXGW WenKai Screen", "Kaiti SC", "KaiTi", "STKaiti", serif;
+  --font-hand: "Zhi Mang Xing", "Gloria Hallelujah", "Segoe Script", cursive;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper-bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+/* 全页纸纤维 */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23g)' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: 256px; opacity: 0.07; mix-blend-mode: multiply;
+}
+.hand-note { font-family: var(--font-hand); color: var(--ink-muted); }
+svg { display: block; }
+.wrap { max-width: 1060px; margin: 0 auto; padding: 0 22px; }
+
+/* ═════════════════════════ Hero ═════════════════════════ */
+.hero { position: relative; padding: 88px 0 150px; overflow: hidden; }
+.hero-sun { position: absolute; top: 34px; right: 6%; width: 168px; transform: rotate(10deg); animation: hero-drift 9s ease-in-out infinite alternate; }
+.hero-cloud { position: absolute; top: 84px; left: 4%; width: 190px; opacity: .95; animation: hero-drift 11s ease-in-out infinite alternate-reverse; }
+.hero-bird { position: absolute; top: 190px; right: 26%; width: 76px; animation: hero-bob 5s ease-in-out infinite; }
+.hero-kicker { font-size: 17px; letter-spacing: 2px; }
+.hero h1 { font-family: var(--font-hand); font-size: clamp(52px, 9vw, 92px); line-height: 1.15; letter-spacing: 6px; margin: 10px 0 2px; }
+.hero-underline { width: min(360px, 72vw); margin: -18px 0 18px; }
+.hero-sub { font-size: 16px; color: var(--ink-muted); max-width: 34em; }
+.hero-hills { position: absolute; bottom: -6px; left: 0; width: 100%; height: 150px; overflow: hidden; }
+.hero-hills > svg { width: 100%; height: 100%; }
+@keyframes hero-drift { from { transform: translateY(0) rotate(8deg); } to { transform: translateY(-12px) rotate(12deg); } }
+@keyframes hero-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* 胶带片 */
+.tape-piece {
+  position: absolute; width: 96px; height: 26px;
+  background: repeating-linear-gradient(-8deg, rgba(233,182,79,.5) 0 9px, rgba(242,226,184,.85) 9px 18px);
+  box-shadow: 0 1px 3px rgba(76,58,39,.22);
+  clip-path: polygon(3% 12%, 97% 0%, 100% 88%, 0% 100%);
+  opacity: .92; pointer-events: none;
+}
+.tape-piece.t2 { background: repeating-linear-gradient(-8deg, rgba(121,169,188,.45) 0 9px, rgba(238,230,210,.85) 9px 18px); }
+.hero .tape-piece.tp1 { top: 40px; left: 38%; transform: rotate(-4deg); }
+.hero .tape-piece.tp2 { top: 22px; right: 22%; transform: rotate(24deg); width: 74px; }
+
+/* ═════════════════════════ Nav ═════════════════════════ */
+.nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--paper-bg) 86%, white); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(63,57,51,.12); }
+.nav-inner { display: flex; gap: 8px; overflow-x: auto; padding: 10px 22px; max-width: 1060px; margin: 0 auto; scrollbar-width: none; }
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav a {
+  flex: none; font-size: 13px; text-decoration: none; color: var(--ink);
+  background: var(--card); border: 1px solid rgba(63,57,51,.16); border-radius: 6px 3px 6px 3px;
+  padding: 4px 13px; transition: transform var(--dur-fast) var(--ease-paper), box-shadow var(--dur-fast);
+}
+.nav a:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 0 3px 8px rgba(76,58,39,.2); }
+
+/* ═════════════════════════ Section 骨架 ═════════════════════════ */
+section { padding: 64px 0 24px; }
+.sec-head { position: relative; display: flex; align-items: baseline; gap: 18px; margin-bottom: 8px; flex-wrap: wrap; }
+.sec-num-wrap { position: relative; width: 64px; height: 44px; flex: none; align-self: center; }
+.sec-num-wrap svg { position: absolute; inset: -8px -14px; width: 92px; height: 60px; }
+.sec-num { position: relative; font-family: var(--font-hand); font-size: 24px; color: var(--ink); z-index: 1; line-height: 44px; text-align: center; display: block; }
+.sec-head h2 { font-family: var(--font-hand); font-size: 34px; letter-spacing: 3px; }
+.sec-desc { color: var(--ink-muted); margin-bottom: 30px; max-width: 46em; }
+
+/* ═════════════════════════ 组件对照 ═════════════════════════ */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: start; }
+@media (max-width: 860px) { .compare { grid-template-columns: 1fr; } }
+.compare-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-hand); font-size: 19px; margin-bottom: 14px; }
+.compare-label .dot { width: 10px; height: 10px; border-radius: 50%; }
+.compare-label.old .dot { background: var(--ink-faint); }
+.compare-label.new .dot { background: var(--sun); }
+
+/* —— 现状卡（复刻 globals.css 的 CSS 近似） —— */
+.entry-before {
+  background: var(--card); padding: 18px; font-size: 15px;
+  box-shadow: 0 8px 22px rgba(76,58,39,.16);
+  clip-path: polygon(0 2%, 4% 0, 22% 1.5%, 38% .4%, 61% 1.8%, 79% .3%, 96% 1.4%, 100% .6%, 99.4% 34%, 100% 68%, 99.2% 99%, 88% 100%, 66% 98.8%, 41% 100%, 18% 98.6%, 2% 99.6%, .4% 72%, 0 38%);
+}
+.entry-before .time { font-size: 12px; color: var(--ink-muted); font-family: var(--font-hand); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.chip {
+  font-size: 12px; line-height: 1; padding: 6px 9px; border-radius: 7px 3px 7px 3px;
+  border: 1px dashed; background: rgba(110,139,114,.16); color: var(--sage); border-color: rgba(110,139,114,.4);
+}
+.chip.c-sun { background: rgba(233,182,79,.2); color: #8a6415; border-color: rgba(233,182,79,.5); }
+.chip.c-rose { background: rgba(216,142,134,.2); color: #9b4f47; border-color: rgba(216,142,134,.5); }
+.chip.c-sky { background: rgba(121,169,188,.2); color: #3d6b80; border-color: rgba(121,169,188,.5); }
+
+/* —— 强化卡 —— */
+.entry-after {
+  position: relative; isolation: isolate; background: var(--card); padding: 20px 18px 18px; font-size: 15px;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='t' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.05' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='t' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-10' y='-10' width='420' height='260' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+  filter: drop-shadow(0 10px 16px rgba(76,58,39,.24));
+  transition: transform var(--dur-normal) var(--ease-paper), filter var(--dur-normal);
+}
+.entry-after:hover { transform: translateY(-3px) rotate(-.35deg); filter: drop-shadow(0 16px 22px rgba(76,58,39,.3)); }
+/* 底下两张错位衬纸 */
+.entry-after::before, .entry-after::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tint); border-radius: 3px;
+  -webkit-mask-image: inherit; mask-image: inherit;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.entry-after::before { transform: rotate(-.9deg) translate(-4px, 3px); filter: drop-shadow(0 4px 7px rgba(76,58,39,.16)); }
+.entry-after::after { transform: rotate(.7deg) translate(5px, -2px); opacity: .85; filter: drop-shadow(0 3px 5px rgba(76,58,39,.12)); }
+/* 纸颗粒 */
+.grain {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; opacity: .06; border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 220px;
+}
+.entry-after .tape-piece { top: -12px; left: 14%; transform: rotate(-3deg); }
+.time-wrap { position: relative; display: inline-block; padding: 2px 16px; }
+.time-wrap .circle-bg { position: absolute; inset: -10px -8px; width: calc(100% + 16px); height: calc(100% + 20px); }
+.entry-after .time { position: relative; font-family: var(--font-hand); font-size: 14px; color: var(--ink); z-index: 1; }
+.fav-star { position: absolute; top: 14px; right: 14px; width: 30px; }
+.hl-crayon {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 56' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cfilter id='c' x='-10%25' y='-10%25' width='120%25' height='120%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.06' numOctaves='3' seed='5' result='w'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='w' scale='6' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='2' seed='9'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15' result='s'/%3E%3CfeComposite in='d' in2='s' operator='in'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M12 20 C90 10 200 26 290 16 L288 40 C196 48 92 32 14 42 Z' fill='%23e9b64f' fill-opacity='.55' filter='url(%23c)'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  padding: 2px .35em; margin: 0 -.1em;
+}
+.entry-after .body { margin-top: 10px; }
+/* 拍立得 */
+.polaroid {
+  position: relative; width: 218px; margin: 16px 0 4px; padding: 8px 8px 4px;
+  background: var(--strong); box-shadow: 0 8px 18px rgba(76,58,39,.24);
+  transform: rotate(1.6deg); transition: transform var(--dur-normal) var(--ease-paper);
+}
+.polaroid:hover { transform: rotate(0deg) translateY(-3px); }
+.polaroid .tape-piece { top: -12px; left: 24%; width: 78px; height: 22px; transform: rotate(-2deg); }
+.photo-scene { position: relative; height: 132px; overflow: hidden; background: linear-gradient(180deg, #b9d3de 0%, #dcc9a8 70%); }
+.photo-scene .ps-sun { position: absolute; top: 8px; left: 14px; width: 58px; }
+.photo-scene .ps-cloud { position: absolute; top: 12px; right: 8px; width: 74px; }
+.photo-scene .ps-hills { position: absolute; bottom: -4px; left: 0; width: 100%; height: 62px; }
+.photo-scene .ps-hills > svg { width: 100%; height: 100%; }
+.polaroid figcaption { font-family: var(--font-hand); font-size: 12px; color: var(--ink-muted); text-align: center; padding: 6px 0 4px; }
+/* AI 附注 */
+.ai-note { position: relative; display: flex; gap: 10px; margin-top: 16px; padding: 10px 12px; background: rgba(110,139,114,.1); border-left: 3px solid rgba(110,139,114,.55); border-radius: 8px 3px 3px 8px; font-size: 13px; }
+.ai-note .ai-icon { flex: none; width: 42px; align-self: flex-start; margin-top: -2px; }
+.ai-label { display: inline-block; position: relative; color: var(--sage); margin-right: 6px; }
+.ai-note .ai-underline { position: absolute; left: -2px; right: -6px; bottom: -4px; height: 12px; }
+.chip-row.cut .chip { position: relative; box-shadow: 0 2px 4px rgba(76,58,39,.15); border-style: solid; }
+.chip-row.cut .chip:nth-child(odd) { transform: rotate(-1.2deg); }
+.chip-row.cut .chip:nth-child(even) { transform: rotate(.9deg); }
+
+/* ═════════════════════════ 素材墙 ═════════════════════════ */
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 22px; }
+.asset-card {
+  position: relative; background: var(--card); padding: 16px 14px 12px;
+  border-radius: 4px; box-shadow: 0 6px 16px rgba(76,58,39,.15);
+  transition: transform var(--dur-normal) var(--ease-paper), box-shadow var(--dur-normal);
+}
+.asset-card:hover { transform: translateY(-4px) rotate(-.4deg); box-shadow: 0 14px 24px rgba(76,58,39,.24); }
+.asset-card::after { /* 纸颗粒 */
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; opacity: .05; border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+.asset-card .tape-piece { top: -11px; left: 50%; margin-left: -40px; transform: rotate(-2deg); width: 80px; height: 22px; }
+.asset-frame { position: relative; display: flex; align-items: center; justify-content: center; min-height: 130px; padding: 8px 4px; }
+.asset-frame svg { max-width: 100%; height: auto; max-height: 150px; }
+.asset-frame.asset-wide { min-height: 74px; }
+.asset-frame.asset-wide svg { max-height: 64px; }
+.asset-caption { position: relative; margin-top: 10px; display: flex; flex-direction: column; gap: 1px; }
+.asset-name { font-size: 13px; letter-spacing: .5px; }
+.asset-caption .hand-note { font-size: 13px; }
+.asset-path {
+  display: block; margin-top: 7px; font: 10.5px/1.4 ui-monospace, Consolas, monospace;
+  color: var(--ink-faint); background: rgba(63,57,51,.06); border-radius: 3px; padding: 2px 7px; width: fit-content;
+}
+/* 纹理组的展示条 */
+.tx-strip { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; background: var(--card); padding: 18px; border-radius: 4px; box-shadow: 0 6px 16px rgba(76,58,39,.15); }
+.tx-strip .strip-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tx-strip .swatch { width: 150px; height: 56px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(63,57,51,.12); }
+.tx-strip .hand-note { font-size: 13px; }
+
+/* 进场 */
+.reveal { opacity: 0; transform: translateY(16px); }
+.reveal.in { opacity: 1; transform: none; transition: opacity .45s var(--ease-paper), transform .5s cubic-bezier(0.34,1.4,0.5,1); transition-delay: calc(var(--i, 0) * 70ms); }
+
+/* ═════════════════════════ 动效剧场 ═════════════════════════ */
+.stages { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+.stage {
+  position: relative; background: var(--card); border-radius: 4px; padding: 18px 16px 14px; min-height: 200px;
+  box-shadow: 0 6px 16px rgba(76,58,39,.15); display: flex; flex-direction: column;
+}
+.stage h3 { font-family: var(--font-hand); font-size: 20px; letter-spacing: 2px; }
+.stage .stage-desc { font-size: 12.5px; color: var(--ink-muted); margin-top: 1px; }
+.stage-area { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; padding: 22px 0 8px; perspective: 800px; }
+.stage .replay {
+  position: absolute; right: 12px; bottom: 10px; font-family: var(--font-hand); font-size: 13px;
+  background: var(--strong); color: var(--ink-muted); border: 1px dashed rgba(63,57,51,.3); border-radius: 6px 3px 6px 3px;
+  padding: 3px 12px; cursor: pointer; transition: all var(--dur-fast);
+}
+.stage .replay:hover { color: var(--ink); transform: rotate(-2deg); border-color: var(--ink-muted); }
+
+/* ① 弹簧落纸 */
+@keyframes drop-spring {
+  0% { opacity: 0; transform: translateY(26px) rotate(2.5deg); }
+  55% { opacity: 1; transform: translateY(-5px) rotate(-1.2deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+.demo-card { width: 130px; height: 84px; background: var(--strong); box-shadow: 0 8px 16px rgba(76,58,39,.22); border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+.anim-target.play.drop { animation: drop-spring .55s cubic-bezier(.3,1.2,.4,1) both; }
+/* ② 胶带粘贴 */
+@keyframes tape-stick {
+  0% { opacity: 0; transform: scaleX(.25) rotate(-14deg); }
+  70% { opacity: 1; transform: scaleX(1.06) rotate(2deg); }
+  100% { opacity: .92; transform: scaleX(1) rotate(-2deg); }
+}
+.demo-tape { width: 130px; height: 34px; transform-origin: left center; background: repeating-linear-gradient(-8deg, rgba(233,182,79,.5) 0 9px, rgba(242,226,184,.85) 9px 18px); box-shadow: 0 2px 5px rgba(76,58,39,.22); clip-path: polygon(2% 10%, 98% 0, 100% 90%, 0 100%); }
+.anim-target.play.tape { animation: tape-stick .4s cubic-bezier(.2,1.4,.45,1) both; }
+/* ③ 蜡笔描画 */
+@keyframes crayon-draw { to { stroke-dashoffset: 0; } }
+.draw-svg { width: 120px; }
+.draw-svg path { stroke-dasharray: 700; stroke-dashoffset: 700; }
+.anim-target.play.draw-svg path.d1 { animation: crayon-draw .9s ease-out both; }
+.anim-target.play.draw-svg path.d2 { animation: crayon-draw 1.05s .12s ease-out both; }
+/* ④ 纸页翻开 */
+@keyframes unfold-in {
+  0% { opacity: 0; transform: rotateX(32deg) translateY(12px); box-shadow: 0 2px 4px rgba(76,58,39,.1); }
+  100% { opacity: 1; transform: rotateX(0) translateY(0); box-shadow: 0 8px 16px rgba(76,58,39,.22); }
+}
+.anim-target.play.unfold { animation: unfold-in .5s var(--ease-paper) both; transform-origin: top center; }
+/* ⑤ 微风摇曳 */
+@keyframes flutter { 0%, 100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.8deg); } }
+.hang-setup { display: flex; flex-direction: column; align-items: center; }
+.hang-string { width: 2px; height: 26px; background: var(--ink-muted); }
+.anim-target.flutter { transform-origin: top center; }
+.anim-target.play.flutter .demo-card { animation: flutter 3.2s ease-in-out .4s infinite; }
+/* ⑥ 依次落下 */
+@keyframes drop-queue {
+  0% { opacity: 0; transform: translateY(22px) rotate(2deg); }
+  60% { opacity: 1; transform: translateY(-3px) rotate(-.8deg); }
+  100% { opacity: 1; transform: none; }
+}
+.queue { display: flex; gap: 12px; }
+.queue .demo-card { width: 64px; height: 78px; opacity: 0; }
+.anim-target.play .queue .demo-card { animation: drop-queue .5s cubic-bezier(.3,1.2,.4,1) both; }
+.anim-target.play .queue .demo-card:nth-child(1) { animation-delay: 0s; }
+.anim-target.play .queue .demo-card:nth-child(2) { animation-delay: 90ms; }
+.anim-target.play .queue .demo-card:nth-child(3) { animation-delay: 180ms; }
+.anim-target.play .queue .demo-card:nth-child(4) { animation-delay: 270ms; }
+/* ⑦ 星星收藏 */
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  80% { transform: scale(.92) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.anim-target.play.star-pop { animation: star-pop .55s var(--ease-spring) both; }
+.anim-target.star-pop { width: 74px; }
+/* ⑧ 墨点思考 */
+@keyframes ink-dot-2 {
+  0%, 70%, 100% { opacity: .2; transform: translateY(0) scale(1); }
+  35% { opacity: 1; transform: translateY(-4px) scale(1.15); }
+}
+.dots { display: flex; gap: 9px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+.anim-target.play .dots i { animation: ink-dot-2 1.3s ease-in-out infinite; }
+.anim-target.play .dots i:nth-child(2) { animation-delay: .18s; }
+.anim-target.play .dots i:nth-child(3) { animation-delay: .36s; }
+
+/* ═════════════════════════ 集成说明 ═════════════════════════ */
+.integrate { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.int-card { background: var(--card); border-radius: 4px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(76,58,39,.14); font-size: 13.5px; }
+.int-card h4 { font-family: var(--font-hand); font-size: 18px; margin-bottom: 6px; letter-spacing: 1px; }
+.int-card code { font: 12px/1.6 ui-monospace, Consolas, monospace; background: rgba(63,57,51,.07); padding: 1px 6px; border-radius: 3px; }
+.int-card pre { font: 12px/1.7 ui-monospace, Consolas, monospace; background: rgba(63,57,51,.07); border-radius: 4px; padding: 10px 12px; overflow-x: auto; margin-top: 8px; }
+footer { padding: 56px 0 70px; text-align: center; color: var(--ink-faint); font-size: 13px; }
+footer .hand-note { font-size: 16px; color: var(--ink-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ Hero ═══════════ -->
+<header class="hero">
+  <div class="hero-sun">{{ASSET:papercut/sun}}</div>
+  <div class="hero-cloud">{{ASSET:papercut/cloud}}</div>
+  <div class="hero-bird">{{ASSET:papercut/bird}}</div>
+  <span class="tape-piece tp1" aria-hidden="true"></span>
+  <span class="tape-piece t2 tp2" aria-hidden="true"></span>
+  <div class="wrap">
+    <p class="hand-note hero-kicker">ShortDiary · 剪纸日记 · 美术素材库 v1</p>
+    <h1>纸间美术馆</h1>
+    <div class="hero-underline" aria-hidden="true">{{ASSET:crayon/underline}}</div>
+    <p class="hero-sub">剪纸是骨架，蜡笔是情绪，手绘是笔迹。<br>三十枚矢量素材 × 八段精修动效，把「纸做的日记」补齐成真的。</p>
+  </div>
+  <div class="hero-hills" aria-hidden="true">{{ASSET:papercut/hills}}</div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#preview">组件对照</a>
+    <a href="#papercut">剪纸 · 结构层</a>
+    <a href="#crayon">蜡笔 · 情绪层</a>
+    <a href="#handdrawn">手绘 · 批注层</a>
+    <a href="#texture">纸纹 · 氛围层</a>
+    <a href="#motion">动效剧场</a>
+    <a href="#integrate">集成指南</a>
+  </div>
+</nav>
+
+<!-- ═══════════ 01 组件对照 ═══════════ -->
+<section id="preview" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">01</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>组件对照</h2>
+  </div>
+  <p class="sec-desc">同一张日记卡。左边是现在的 CSS 近似（clip-path 撕边 + 普通投影），右边是素材库加持后的样子：纤维撕边、错位衬纸、和纸胶带、蜡笔圈注、剪纸照片。</p>
+  <div class="compare">
+    <div>
+      <div class="compare-label old"><span class="dot"></span>现状</div>
+      <article class="entry-before">
+        <header style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="time">9月22日 · 周二 · 14:43</span>
+          <span style="color:#a89a8c;font-size:16px;">★</span>
+        </header>
+        <p style="margin-top:8px;">台风外围的风把云吹得很低。下午在窗边改了两个小时的设计稿，纸上的山和云，忽然都想搬进日记里。</p>
+        <div style="margin-top:12px;width:170px;background:#fff9ef;padding:6px 6px 2px;box-shadow:0 8px 22px rgba(76,58,39,.16);">
+          <div style="height:96px;background:linear-gradient(180deg,#b9d3de,#dcc9a8);"></div>
+          <div class="hand-note" style="font-size:11px;text-align:center;padding:4px 0;">窗外的云</div>
+        </div>
+        <div class="chip-row">
+          <span class="chip">#生活</span><span class="chip c-sun">#天气</span><span class="chip c-rose">#灵感</span>
+        </div>
+      </article>
+    </div>
+    <div>
+      <div class="compare-label new"><span class="dot"></span>强化后</div>
+      <article class="entry-after">
+        <span class="grain" aria-hidden="true"></span>
+        <span class="tape-piece" aria-hidden="true"></span>
+        <header style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;">
+          <span class="time-wrap">
+            <span class="circle-bg" aria-hidden="true">{{ASSET:crayon/circle-mark}}</span>
+            <span class="time">9月22日 · 周二 · 14:43</span>
+          </span>
+          <span class="fav-star" aria-hidden="true">{{ASSET:crayon/star}}</span>
+        </header>
+        <p class="body">台风外围的风把云吹得很低。下午在窗边改了两个小时的设计稿，纸上的<span class="hl-crayon">山和云</span>，忽然都想搬进日记里。</p>
+        <figure class="polaroid">
+          <span class="tape-piece t2" aria-hidden="true"></span>
+          <div class="photo-scene">
+            <div class="ps-sun">{{ASSET:papercut/sun}}</div>
+            <div class="ps-cloud">{{ASSET:papercut/cloud}}</div>
+            <div class="ps-hills">{{ASSET:papercut/hills}}</div>
+          </div>
+          <figcaption>窗外的云 · 剪纸版</figcaption>
+        </figure>
+        <div class="ai-note">
+          <span class="ai-icon" aria-hidden="true">{{ASSET:crayon/sun-face}}</span>
+          <div><span class="ai-label">AI 附注<svg class="ai-underline" viewBox="0 0 360 38" fill="none" preserveAspectRatio="none"><path d="M12 22 C120 16 240 26 348 17" stroke="#6e8b72" stroke-width="5" stroke-linecap="round" opacity=".7"/></svg></span>今天的关键词是「把风景收进纸里」。</div>
+        </div>
+        <div class="chip-row cut">
+          <span class="chip">#生活</span><span class="chip c-sun">#天气</span><span class="chip c-rose">#灵感</span><span class="chip c-sky">#设计</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 02 剪纸 ═══════════ -->
+<section id="papercut" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">02</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>剪纸 · 结构层</h2>
+  </div>
+  <p class="sec-desc">层叠 silhouette + 逐层投影。每个 <code>.svg</code> 都是独立文件，currentColor 无关、palette 与 token 对齐；hover 卡片可以预览。</p>
+  <div class="wall">
+{{WALL:papercut}}
+  </div>
+</section>
+
+<!-- ═══════════ 03 蜡笔 ═══════════ -->
+<section id="crayon" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">03</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>蜡笔 · 情绪层</h2>
+  </div>
+  <p class="sec-desc">feTurbulence 位移制造蜡笔抖线，高频颗粒 mask 制造蜡质断续——不是「贴图」，是滤镜，任何颜色都能过一遍变成蜡笔。</p>
+  <div class="wall">
+{{WALL:crayon}}
+  </div>
+</section>
+
+<!-- ═══════════ 04 手绘 ═══════════ -->
+<section id="handdrawn" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">04</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>手绘 · 批注层</h2>
+  </div>
+  <p class="sec-desc">双描线抖动 + 回声笔迹 + 收笔过冲。全部纯 path，无滤镜依赖，随便改色改粗细。</p>
+  <div class="wall">
+{{WALL:handdrawn}}
+  </div>
+</section>
+
+<!-- ═══════════ 05 纸纹 ═══════════ -->
+<section id="texture" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">05</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>纸纹 · 氛围层</h2>
+  </div>
+  <p class="sec-desc">可平铺噪声 / 瓦楞 / 和纸胶带。下面是三种用法示意：直接平铺、局部条带、胶带封口。</p>
+  <div class="tx-strip reveal">
+    <div class="strip-row">
+      <div class="swatch" style="background-image:url('assets/texture/paper-grain.svg');background-size:256px;opacity:.5;"></div>
+      <span class="hand-note">paper-grain · 全页平铺（multiply, opacity .05–.09）</span>
+    </div>
+    <div class="strip-row">
+      <div class="swatch" style="background-image:url('assets/texture/corrugated.svg');background-size:64px;"></div>
+      <span class="hand-note">corrugated · 结构条带（侧栏 / 分组标题）</span>
+    </div>
+    <div class="strip-row">
+      <div class="swatch" style="background:#fff9ef;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+        <img src="assets/texture/washi-stripe.svg" alt="washi stripe" style="position:absolute;top:-8px;left:24px;width:110px;transform:rotate(-3deg);">
+        <img src="assets/texture/washi-grid.svg" alt="washi grid" style="position:absolute;bottom:-8px;right:18px;width:110px;transform:rotate(2deg);">
+        <span class="hand-note" style="position:relative;">washi · 贴在照片上</span>
+      </div>
+      <span class="hand-note">washi-stripe / washi-grid · 撕裂端头，直接当贴纸</span>
+    </div>
+  </div>
+  <div class="wall" style="margin-top:22px;">
+{{WALL:texture}}
+  </div>
+</section>
+
+<!-- ═══════════ 06 动效剧场 ═══════════ -->
+<section id="motion" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">06</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>动效剧场</h2>
+  </div>
+  <p class="sec-desc">原则不变：transform/opacity 优先、150–550ms、reduced-motion 全关。升级点在于曲线与编排——弹簧过冲、二次回弹、错峰落纸。进场自动播放一次，右侧可重播。</p>
+  <div class="stages">
+    <div class="stage reveal">
+      <h3>① 弹簧落纸</h3><p class="stage-desc">drop-spring · 26px 落下 → 过冲回弹 → 归位带微转角</p>
+      <div class="stage-area"><div class="demo-card anim-target drop"></div></div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>② 胶带粘贴</h3><p class="stage-desc">tape-stick · scaleX 从 0.25 拉开 + 角度回弹，像按上去的</p>
+      <div class="stage-area"><div class="demo-tape anim-target tape"></div></div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>③ 蜡笔描画</h3><p class="stage-desc">crayon-draw · stroke-dashoffset 900ms 描完，回声笔慢半拍</p>
+      <div class="stage-area">
+        <svg class="draw-svg anim-target draw-svg" viewBox="0 0 130 132" fill="none">
+          <path class="d1" d="M65 15 L78 52 L117 55 L87 78 L97 117 L65 94 L33 117 L43 78 L13 55 L52 52 Z" stroke="#e9b64f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/>
+          <path class="d2" d="M67 18 L80 54 L114 58 L88 79 L98 113 L67 92 L36 113 L46 79 L17 58 L54 54 Z" stroke="#e9b64f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+        </svg>
+      </div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>④ 纸页翻开</h3><p class="stage-desc">unfold-in · rotateX 32° 翻开，阴影随高度同步变深</p>
+      <div class="stage-area"><div class="demo-card anim-target unfold"></div></div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>⑤ 微风摇曳</h3><p class="stage-desc">flutter · 挂在胶带下的卡片 ±1.8° 摆动，3.2s 呼吸感</p>
+      <div class="stage-area">
+        <div class="hang-setup anim-target flutter">
+          <div class="hang-string"></div>
+          <div class="demo-card"></div>
+        </div>
+      </div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>⑥ 依次落下</h3><p class="stage-desc">drop-queue · 90ms 错峰，队列感来自节奏而非延迟堆积</p>
+      <div class="stage-area">
+        <div class="anim-target queue-wrap">
+          <div class="queue">
+            <div class="demo-card"></div><div class="demo-card"></div><div class="demo-card"></div><div class="demo-card"></div>
+          </div>
+        </div>
+      </div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>⑦ 星星收藏</h3><p class="stage-desc">star-pop · scale 0→1.3→1 + 旋转归正，比 hover:scale 有弹性</p>
+      <div class="stage-area">
+        <div class="anim-target star-pop">{{ASSET:crayon/star}}</div>
+      </div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+    <div class="stage reveal">
+      <h3>⑧ 墨点思考</h3><p class="stage-desc">ink-dot-2 · 上浮 + 轻微放大，替代纯 opacity 闪动</p>
+      <div class="stage-area">
+        <div class="anim-target dots-wrap">
+          <div class="dots"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <button class="replay" data-replay>重播</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 07 集成指南 ═══════════ -->
+<section id="integrate" class="wrap">
+  <div class="sec-head">
+    <span class="sec-num-wrap"><span class="sec-num">07</span>{{ASSET:crayon/circle-mark}}</span>
+    <h2>集成指南</h2>
+  </div>
+  <p class="sec-desc">素材与 token 全部对齐现有 globals.css，四步并入。</p>
+  <div class="integrate">
+    <div class="int-card">
+      <h4>① 放置素材</h4>
+      把 <code>art-kit/assets/</code> 整体复制到 <code>public/art/</code>，按 <code>&lt;img src="/art/papercut/hills.svg"&gt;</code> 或 CSS background 引用。全部是无依赖的纯 SVG，支持 <code>&lt;img&gt;</code>、background、内联三种用法。
+    </div>
+    <div class="int-card">
+      <h4>② 撕边升级</h4>
+      clip-path 多边形换成 SVG 位移 mask（本页 .entry-after 即效果）：<code>paper-motion.css</code> 里的 <code>.torn-fiber-1..4</code> 四个变体，保留「同卡片固定变体」的种子约定。
+    </div>
+    <div class="int-card">
+      <h4>③ 动效替换</h4>
+      <code>paper-motion.css</code> 与 globals.css 同名 token 直接合并：<code>--ease-spring</code>、<code>drop-spring</code>、<code>tape-stick</code>、<code>crayon-draw</code>、<code>unfold-in</code>、<code>flutter</code>、<code>star-pop</code>。原 <code>paper-drop</code> 可保留为兜底。
+    </div>
+    <div class="int-card">
+      <h4>④ 手写字体</h4>
+      现有 <code>--font-hand</code>（Segoe Script）无中文字形，中文全部回退到系统字体。建议换成：
+      <pre>--font-hand: "Zhi Mang Xing", "Gloria Hallelujah", cursive;
+--font-serif-cn: "LXGW WenKai Screen", "Songti SC", serif;</pre>
+    </div>
+    <div class="int-card">
+      <h4>分层原则</h4>
+      剪纸只出现在<b>结构位</b>（空状态、区块底、照片内容）；蜡笔只出现在<b>情绪位</b>（高亮、圈注、心情）；手绘只出现在<b>批注位</b>（2–12 字）。正文永远在高对比米白卡上，simpleMode 关闭全部纹理与撕边。
+    </div>
+    <div class="int-card">
+      <h4>再生成</h4>
+      所有素材由脚本生成（seeded，可复现）：
+      <pre>node art-kit/tools/generate-assets.mjs</pre>
+      改参数（抖动幅度、色板、种子）重跑即可全家更新，模板 <code>art-kit/tools/template.html</code> 会同步重新组装本页。
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p class="hand-note">纸会记得所有被认真对待的日子。</p>
+  <p style="margin-top:6px;">Paper Journal Art Kit · 30 SVG + motion · 与 globals.css token 对齐</p>
+</footer>
+
+<script>
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (!e.isIntersecting) continue;
+    e.target.classList.add("in");
+    if (!reduce) e.target.querySelectorAll(".anim-target").forEach((t) => t.classList.add("play"));
+    io.unobserve(e.target);
+  }
+}, { threshold: 0.2 });
+document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+document.querySelectorAll("[data-replay]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const stage = btn.closest(".stage");
+    stage.querySelectorAll(".anim-target").forEach((t) => {
+      t.classList.remove("play");
+      void t.offsetWidth;
+      t.classList.add("play");
+    });
+  });
+});
+</script>
+</body>
+</html>

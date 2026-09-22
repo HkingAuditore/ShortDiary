@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+<defs><pattern id="c" width="12" height="12" patternUnits="userSpaceOnUse">
+<rect width="12" height="12" fill="#b8905f"/>
+<rect x="0" width="3" height="12" fill="#a67d4d" opacity="0.5"/>
+<rect x="4" width="4" height="12" fill="#c9a06c" opacity="0.55"/>
+</pattern></defs>
+<rect width="64" height="64" fill="url(#c)"/>
+</svg>

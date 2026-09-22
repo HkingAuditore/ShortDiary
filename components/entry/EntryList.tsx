@@ -73,12 +73,19 @@ export function EntryList({
       const row = rows[i];
       if (!row) return 200;
       if (row.kind === "date") return 48;
-      const base = 120 + Math.min(row.entry.content.length, 600) * 0.11;
+      // 估高尽量贴近真实卡片：正文 + AI 附注框 + 标签行 + 图片。
+      // 估得越准，未测量行的首帧重叠越轻（measureElement 会在渲染后纠正）。
+      let base = 96 + Math.min(row.entry.content.length, 600) * 0.13;
+      if (row.entry.ai?.summary) base += 96;
+      if (row.entry.tags.length > 0) base += 34;
       const images = row.entry.assets.length > 0 ? 260 : 0;
       return base + images;
     },
     overscan: 6,
     scrollMargin,
+    // 按 entry id（而非行号）缓存实测高度：新记录插到列表头部时行号整体平移，
+    // 按 index 缓存会让所有行的测量值错位（切页回来排版重叠的直接原因）。
+    getItemKey: (i) => rows[i]?.key ?? i,
   });
 
   const items = virtualizer.getVirtualItems();
@@ -148,7 +155,7 @@ export function EntryList({
               {row.kind === "date" ? (
                 /* 日期分隔：日期标签做成一张斜贴的小纸签 */
                 <h2 className="flex items-center gap-2.5 px-1 pb-2 pt-5">
-                  <span className="relative inline-block -rotate-1 rounded-l-[6px] rounded-r-[3px] bg-paper-deep px-2.5 py-1 font-(--font-serif-cn) text-sm text-ink shadow-[0_2px_5px_rgba(76,58,39,0.18)]">
+                  <span className="paper-date-tab relative inline-block -rotate-1 rounded-l-[6px] rounded-r-[3px] px-2.5 py-1 font-(--font-serif-cn) text-sm text-ink shadow-[0_2px_5px_rgba(76,58,39,0.18)]">
                     {relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}
                   </span>
                   {relativeDayLabel(row.date, today) ? (

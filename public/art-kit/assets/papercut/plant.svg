@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 225" fill="none" role="img">
+<defs><filter id="sh1" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.18"/>
+</filter></defs>
+<path d="M75 212 C68 170 84 140 72 100 C66 74 76 46 80 14" stroke="#5d7a61" stroke-width="4" fill="none" stroke-linecap="round"/><g filter="url(#sh1)"><circle cx="58" cy="182" r="13" fill="#6e8b72"/></g><g filter="url(#sh1)"><circle cx="92" cy="162" r="11" fill="#8fa78f"/></g><g filter="url(#sh1)"><circle cx="56" cy="134" r="12" fill="#5d7a61"/></g><g filter="url(#sh1)"><circle cx="90" cy="110" r="10" fill="#6e8b72"/></g><g filter="url(#sh1)"><circle cx="54" cy="86" r="12" fill="#8fa78f"/></g><g filter="url(#sh1)"><circle cx="88" cy="66" r="9" fill="#6e8b72"/></g><g filter="url(#sh1)"><circle cx="60" cy="46" r="11" fill="#5d7a61"/></g><g filter="url(#sh1)"><circle cx="86" cy="30" r="8" fill="#8fa78f"/></g><g filter="url(#sh1)"><circle cx="70" cy="16" r="7" fill="#6e8b72"/></g>
+</svg>

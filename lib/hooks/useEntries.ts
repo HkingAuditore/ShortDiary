@@ -22,7 +22,10 @@ export interface EntriesPage {
 
 export function useEntries(filters: EntryFilters = {}, endpoint = "/api/entries", initialPage?: EntriesPage) {
   const query = useInfiniteQuery({
-    queryKey: [endpoint, "list", filters],
+    // key 必须以 "entries" 开头：queryKeys.entries.all = ["entries"] 靠前缀匹配失效缓存。
+    // 之前写成 [endpoint, "list", filters]，与 ["entries"] 无前缀关系，
+    // 导致 Composer/EntryCard 的 invalidateQueries 全部无效（收藏/新建后列表不刷新）。
+    queryKey: ["entries", endpoint, "list", filters],
     initialPageParam: null as string | null,
     initialData: initialPage ? { pages: [initialPage], pageParams: [null] } : undefined,
     queryFn: ({ pageParam }) =>

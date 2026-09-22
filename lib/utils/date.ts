@@ -106,16 +106,32 @@ export function combineDateTime(dateStr: string, hhmm: string | null, timeZone: 
 }
 
 function zonedToUtc(dateStr: string, hhmm: string, timeZone: string): Date {
-  const [h, m] = hhmm.split(":").map(Number) as [number, number];
-  const guess = new Date(`${dateStr}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00Z`);
-  // 迭代校正时区偏移（最多两轮即可收敛）
-  let result = guess;
-  for (let i = 0; i < 2; i += 1) {
-    const asTz = new Date(result.toLocaleString("sv-SE", { timeZone }));
-    const offset = result.getTime() - Date.parse(`${asTz.toISOString().slice(0, 19)}Z`);
-    result = new Date(guess.getTime() + offset);
+  // 目标：求 UTC 时刻 u，使 u 在 timeZone 的墙钟恰好等于「dateStr hhmm」。
+  // 用 Intl.formatToParts 迭代求偏移（两轮收敛，DST 边界也稳）。
+  // 注意不能用 toLocaleString + 本地 Date 解析往返：宿主时区恰好等于目标时区时
+  // 偏移会被抵消成 0，墙钟被整体当成 UTC（曾在 +8 机器上把 12:00 存成 12:00Z，显示 20:00）。
+  const wall = `${dateStr}T${hhmm}:00`;
+  const wallMs = Date.parse(`${wall}Z`);
+  let u = wallMs;
+  for (let i = 0; i < 3; i += 1) {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts: Record<string, string> = {};
+    for (const p of dtf.formatToParts(new Date(u))) parts[p.type] = p.value;
+    const asUTC = Date.parse(
+      `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}Z`,
+    );
+    u = wallMs - (asUTC - u);
   }
-  return result;
+  return new Date(u);
 }
 
 export function guessTimeZone(): string {

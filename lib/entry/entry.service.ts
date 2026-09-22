@@ -70,10 +70,17 @@ export async function getEntry(ctx: ServiceContext, id: string): Promise<EntryVi
 export async function createEntry(ctx: ServiceContext, input: CreateEntryInput): Promise<EntryView> {
   const db = await getDb();
 
+  // 只有「补记过去某天」或「明确给了时刻」才做墙钟换算；
+  // 顺手的当下记录用真实当前时刻 —— 否则所有当天记录都会显示成同一个换算时刻。
+  const nowStr = dateInTimeZone(new Date(), ctx.timezone);
+  const entryDateInput = input.entryDate;
+  const isBackfill =
+    entryDateInput !== undefined &&
+    (input.occurredTime !== undefined || entryDateInput !== nowStr);
   const occurredAt = input.occurredAt
     ? new Date(input.occurredAt)
-    : input.entryDate
-      ? combineDateTime(input.entryDate, input.occurredTime ?? null, ctx.timezone)
+    : entryDateInput && isBackfill
+      ? combineDateTime(entryDateInput, input.occurredTime ?? null, ctx.timezone)
       : new Date();
 
   // 「属于哪一天」与「真正写入时间」分离：补记昨天不改变 created_at
@@ -87,6 +94,11 @@ export async function createEntry(ctx: ServiceContext, input: CreateEntryInput):
     );
     if (input.assets?.length) await repoAttach(ctx.userId, entry.id, input.assets, tx as never);
     if (input.tags?.length) await setEntryTags(ctx.userId, entry.id, input.tags, "manual", tx as never);
+    // 不跑 AI 整理时直接落为 skipped：repo 默认写 pending，但这里不会入队，
+    // 没有任务会推进它，前端会永远显示「AI 整理中」
+    if (ctx.preferences?.autoAnnotate === false) {
+      await tx.update(entries).set({ aiStatus: "skipped" }).where(eq(entries.id, entry.id));
+    }
     return entry;
   });
 

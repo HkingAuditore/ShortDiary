@@ -101,7 +101,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       id={entry.id}
       seed={entry.id}
       hover
-      className={["scroll-mt-6 p-4", entry.aiStatus === "pending" ? "ai-scanning" : ""].join(" ")}
+      className={["paper-entry-card scroll-mt-6 p-4", entry.aiStatus === "pending" ? "ai-scanning" : ""].join(" ")}
     >
       <header className="flex items-start justify-between gap-2">
         <time dateTime={entry.occurredAt} className="hand-note text-xs">

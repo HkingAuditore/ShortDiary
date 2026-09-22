@@ -49,7 +49,7 @@ export function PaperCard({
     <Tag
       id={id}
       className={clsx(
-        "paper-drop relative bg-paper-card text-ink shadow-(--shadow-paper) transition-[transform,box-shadow] duration-(--dur-fast) ease-out",
+        "paper-drop paper-stack relative bg-paper-card text-ink shadow-(--shadow-paper) transition-[transform,box-shadow,filter] duration-(--dur-fast) ease-out",
         torn && tornClass(seed),
         hover && "hover:-translate-y-[2px] hover:shadow-(--shadow-paper-hover)",
         className,

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 38" fill="none" role="img">
+<defs><filter id="fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="0.028 0.05" numOctaves="3" seed="6" result="wob"/>
+<feDisplacementMap in="SourceGraphic" in2="wob" scale="5" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.30" numOctaves="2" seed="13" result="grain"/>
+<feColorMatrix in="grain" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15" result="spek"/>
+<feComposite in="d1" in2="spek" operator="in"/>
+</filter></defs>
+<path d="M12 22L27.4 21.9L42.8 20.5L58.2 18.7L73.7 18.1L89.1 17.6L104.5 17.1L120.1 17L135 18.9L150 20.5L164.9 22.7L180 22.2L194.9 23.4L210 21.7L225.1 21.8L240 24.3L255.4 22.4L270.9 22.4L286.3 21.6L301.6 18.2L317.2 19.7L332.6 17.7L348 17" fill="none" stroke="#e9b64f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#fx)"/><path d="M12 22L27.4 21.8L42.8 18.4L58.2 17.8L73.7 20.3L89.1 18.7L104.6 19.1L119.9 20.8L134.9 21.5L150 20.2L164.9 23.4L180 22.3L194.9 23.9L210 22.6L225.1 20.5L239.8 21.6L255.4 22.1L271 24.9L286.3 20.7L301.8 20.7L317 17.1L332.6 18.2L348 17" fill="none" stroke="#e9b64f" stroke-width="3.9" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#fx)"/><path d="M46 26L60.8 24.3L75.7 23.8L90.6 24.2L105.4 23.7L120.3 24L135.1 23.5L150 23.3L164.7 23.8L179.4 24.1L194.1 23.8L208.6 27.4L223.4 25L238 28" fill="none" stroke="#e9b64f" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#fx)"/><path d="M46 26L60.9 28.3L75.7 26.8L90.6 24.3L105.4 24.3L120.3 26.3L135.2 26.7L150 24.6L164.5 27.5L179.3 25.5L194 25.6L208.7 26.9L223.4 25.1L238 28" fill="none" stroke="#e9b64f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#fx)"/>
+</svg>

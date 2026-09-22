@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 132" fill="none" role="img">
+<defs><filter id="fx" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="0.028 0.05" numOctaves="3" seed="11" result="wob"/>
+<feDisplacementMap in="SourceGraphic" in2="wob" scale="5" xChannelSelector="R" yChannelSelector="G" result="d1"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.30" numOctaves="2" seed="18" result="grain"/>
+<feColorMatrix in="grain" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 3.2 -1.15" result="spek"/>
+<feComposite in="d1" in2="spek" operator="in"/>
+</filter></defs>
+<path d="M65 17L73 32.8L77.4 47.9L94.9 51.4L113.1 52.3L99.3 63.2L86.3 73.1L89.6 90.5L95.6 105.6L80.6 96.4L66.3 90L49.8 96.9L34.3 107.1L38.4 89.9L46.5 71.7L32.3 61.2L17.4 51.4L35.1 51.9L50.7 49.1L58.2 37.6L64.9 25.7L70 13" fill="none" stroke="#e9b64f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" filter="url(#fx)"/><path d="M65 17L71.6 33.4L77.5 47.3L94.9 51L113.2 52.3L100.5 64.7L86.4 73.1L88.3 90.8L93.3 109.1L81.5 95.1L65 88L50.7 98.4L34.2 107.1L43.3 91.3L43.7 75.1L32.9 60.5L17.5 52.1L35.1 50.9L51.6 49.5L58.1 37.5L64.8 25.6L70 13" fill="none" stroke="#e9b64f" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#fx)"/>
+</svg>

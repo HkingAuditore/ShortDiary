@@ -12,6 +12,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // dev 指示浮标（左下角 N 钮）会压住移动端底部导航第一项，日常开发也碍事，关闭
+  devIndicators: false,
   serverExternalPackages: ["pino", "cos-nodejs-sdk-v5", "@electric-sql/pglite"],
   experimental: {
     // 上传路由接收本地驱动的文件字节，其余路由保持默认

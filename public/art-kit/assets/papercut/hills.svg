@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 170" fill="none" role="img">
+<defs><filter id="sh1" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#4c3a27" flood-opacity="0.18"/>
+</filter><filter id="sh2" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#4c3a27" flood-opacity="0.18"/>
+</filter><filter id="sh3" x="-25%" y="-25%" width="150%" height="150%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#4c3a27" flood-opacity="0.2"/>
+</filter></defs>
+<g filter="url(#sh1)"><path d="M0 112.1 Q 79.4 85.3 158.9 113.4 Q 259.2 86.6 359.5 105.3 Q 439 85.3 518.5 111.2 Q 559.2 81 600 110.7 L600 170 L0 170 Z" fill="#a9bfa4"/></g><g filter="url(#sh2)"><path d="M0 125.1 Q 49.4 98.7 98.9 126.9 Q 164.9 107.5 231 130.2 Q 338 94.7 444.9 122.1 Q 522.5 107.6 600 123.4 L600 170 L0 170 Z" fill="#6e8b72"/></g><g filter="url(#sh3)"><path d="M0 150.2 Q 109.8 136.4 219.6 153.8 Q 277.5 127.7 335.4 144.8 Q 442.7 127 549.9 149.9 Q 575 124.6 600 145.6 L600 170 L0 170 Z" fill="#5d7a61"/></g>
+</svg>

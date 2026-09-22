@@ -12,14 +12,18 @@ const ITEMS = [
   { href: "/settings", label: "设置" },
 ];
 
-/** 移动端底部导航：主操作区永远在拇指可及范围；瓦楞纸底 + 山形剪影 */
+/**
+ * 移动端底部导航：主操作区永远在拇指可及范围。
+ * 瓦楞纸底 + 山峦剪影（.paper-mobile-nav，与左侧栏同语言）；
+ * 当前页是一枚微微歪着的冲切小纸片，压在瓦楞纸上。
+ */
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="底部导航"
-      className="corrugated paper-hills fixed bottom-0 left-0 right-0 z-40 flex border-t border-ink/10 bg-paper-strong/95 backdrop-blur md:hidden"
+      className="paper-mobile-nav fixed bottom-0 left-0 right-0 z-40 flex md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {ITEMS.map((item) => {
@@ -30,19 +34,30 @@ export function MobileNav() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "paper-focus flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1 text-[11px] transition-all duration-(--dur-fast)",
-              active ? "text-ink" : "text-ink-faint",
+              "paper-focus relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 pt-1.5 pb-1.5 text-xs font-medium transition-all duration-(--dur-fast)",
+              active ? "text-ink" : "text-ink/70",
             )}
           >
-            {/* 当前项：一枚小彩纸片压在导航上 */}
+            {/* 当前项：一枚冲切小纸片垫在底下，微微歪着 —— relative 提层，避免被山峦伪元素盖住 */}
             <span
               aria-hidden
               className={clsx(
-                "mb-0.5 h-1.5 w-6 rounded-full transition-all duration-(--dur-fast)",
-                active ? "bg-sage shadow-[0_1px_2px_rgba(76,58,39,0.25)] -translate-y-[1px]" : "bg-ink/10",
+                "absolute inset-x-1.5 top-1 bottom-1 rounded-[4px] transition-all duration-(--dur-fast) ease-(--ease-paper)",
+                active
+                  ? "-rotate-[0.8deg] bg-paper-card shadow-[0_1px_5px_rgba(76,58,39,0.16)]"
+                  : "rotate-0 bg-transparent shadow-none",
               )}
             />
-            {item.label}
+            <span
+              aria-hidden
+              className={clsx(
+                "relative h-1.5 w-6 rounded-full transition-all duration-(--dur-fast)",
+                active
+                  ? "bg-sage shadow-[0_1px_2px_rgba(76,58,39,0.25)]"
+                  : "scale-x-50 bg-ink/10 opacity-60",
+              )}
+            />
+            <span className="relative">{item.label}</span>
           </Link>
         );
       })}
