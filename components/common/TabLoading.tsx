@@ -16,7 +16,7 @@ export function TabLoading({ label, variant = "list" }: { label?: string; varian
           <HandNote className="ml-2">翻找纸堆中…</HandNote>
         </div>
       ) : (
-        <p className="hand-note px-1 text-xs text-ink-faint">翻找纸堆中…</p>
+        <p className="hand-note px-1 text-xs text-ink-muted">翻找纸堆中…</p>
       )}
 
       {variant === "compose" ? <ComposerSkeleton /> : null}

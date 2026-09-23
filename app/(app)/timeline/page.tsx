@@ -29,20 +29,20 @@ export default async function TimelinePage() {
   const aside = (
     <>
       <AsideCard title="今日" seed="today-brief">
-        <p className="hand-note mb-2 text-[13px] text-ink">
+        <p className="hand-note mb-2 text-[14px] text-ink">
           {formatChineseDate(todayStr)}
         </p>
         <p className="text-xs leading-relaxed text-ink-muted">
           今天已有 <span className="font-medium text-ink">{todayCount}</span> 条记录
           {todayStarred > 0 ? (
             <>
-              ，其中 <span className="text-sun">★ {todayStarred}</span> 条被你标星
+              ，其中 <span className="font-medium text-sun">★ {todayStarred}</span> 条被你标星
             </>
           ) : null}
           。
         </p>
         {todayCount === 0 ? (
-          <p className="mt-1.5 hand-note text-[11px] text-sage">从上面那条纸开始写吧</p>
+          <p className="mt-1.5 hand-note text-[12px] text-sage">从上面那条纸开始写吧</p>
         ) : null}
       </AsideCard>
       {/* 回忆卡是「锦上添花」，不阻塞时间线首屏：流式渲染，晚到晚画 */}
@@ -54,15 +54,15 @@ export default async function TimelinePage() {
 
   return (
     <PageShell aside={aside}>
-      <div className="space-y-4">
+      <div className="space-y-5">
         <header className="paper-page-heading flex flex-wrap items-end justify-between gap-4 px-2 pb-1 pt-1">
           <div>
             <p className="hand-note text-xs tracking-wide text-ink-muted">A Brighter Day · One Page at a Time</p>
-            <h1 className="mt-1 font-(--font-serif-cn) text-3xl tracking-[0.08em] text-ink sm:text-4xl">
+            <h1 className="mt-1.5 font-(--font-serif-cn) text-3xl tracking-[0.08em] text-ink sm:text-4xl">
               {formatChineseDate(todayStr)}
             </h1>
           </div>
-          <div className="paper-weather-note hand-note rotate-2 rounded-[4px] bg-sun/20 px-3 py-2 text-xs text-ink-muted shadow-[0_3px_8px_rgba(76,58,39,.1)]">
+          <div className="paper-weather-note hand-note rotate-2 rounded-[4px] bg-sun/25 px-3.5 py-2 text-[13px] text-ink shadow-[0_3px_8px_rgba(76,58,39,.12)]">
             ☀ 今天也要好好生活
           </div>
         </header>

@@ -64,17 +64,17 @@ export function CommandPalette() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="跳转，或搜索记录……"
-            className="w-full bg-transparent px-1 py-1.5 text-[15px] outline-none placeholder:text-ink-faint"
+            className="w-full bg-transparent px-1 py-1.5 text-[15px] outline-none placeholder:text-ink-muted/85"
           />
 
           <div className="mt-2 max-h-[52vh] overflow-y-auto">
             {term ? (
               <section className="mb-2">
-                <h3 className="px-1 pb-1 text-[11px] text-ink-faint">匹配的记录</h3>
+                <h3 className="px-1 pb-1 text-[11px] font-medium text-ink-muted">匹配的记录</h3>
                 {results.isLoading ? (
-                  <p className="px-1 py-2 text-xs text-ink-faint">搜索中…</p>
+                  <p className="px-1 py-2 text-xs text-ink-muted">搜索中…</p>
                 ) : (results.data ?? []).length === 0 ? (
-                  <p className="px-1 py-2 text-xs text-ink-faint">没有匹配</p>
+                  <p className="px-1 py-2 text-xs text-ink-muted">没有匹配</p>
                 ) : (
                   <ul>
                     {(results.data ?? []).map((e) => (
@@ -84,7 +84,7 @@ export function CommandPalette() {
                           onClick={() => go(`/timeline#${e.id}`)}
                           className="paper-focus block w-full truncate rounded-[3px] px-2 py-1.5 text-left text-sm hover:bg-paper-strong"
                         >
-                          <span className="mr-2 text-[11px] text-ink-faint">{e.entryDate}</span>
+                          <span className="mr-2 text-[11px] text-ink-muted">{e.entryDate}</span>
                           {e.content.slice(0, 60)}
                         </button>
                       </li>
@@ -102,7 +102,7 @@ export function CommandPalette() {
             ) : null}
 
             <section>
-              <h3 className="px-1 pb-1 text-[11px] text-ink-faint">跳转</h3>
+              <h3 className="px-1 pb-1 text-[11px] font-medium text-ink-muted">跳转</h3>
               <ul>
                 {pages.map((p) => (
                   <li key={p.href}>
@@ -112,7 +112,7 @@ export function CommandPalette() {
                       className="paper-focus flex w-full items-baseline justify-between rounded-[3px] px-2 py-1.5 text-left text-sm hover:bg-paper-strong"
                     >
                       <span>{p.label}</span>
-                      <span className="text-[11px] text-ink-faint">{p.hint}</span>
+                      <span className="text-[11px] text-ink-muted">{p.hint}</span>
                     </button>
                   </li>
                 ))}

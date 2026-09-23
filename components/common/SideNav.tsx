@@ -31,7 +31,7 @@ export function SideNav({ displayName }: { displayName: string }) {
           </span>
           <span className="font-(--font-serif-cn) text-xl tracking-wide text-ink">小日子</span>
         </span>
-        <span className="hand-note pl-11 text-[11px]">MY DIARY · 记录生活</span>
+        <span className="hand-note pl-11 text-[12px] text-ink-muted">MY DIARY · 记录生活</span>
       </Link>
 
       {ITEMS.map((item) => {
@@ -42,24 +42,24 @@ export function SideNav({ displayName }: { displayName: string }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "paper-focus relative flex items-center gap-3 rounded-[8px] px-3 py-3 text-sm transition-all duration-(--dur-fast) ease-out",
+              "paper-focus relative flex items-center gap-3 rounded-[8px] px-3 py-3 text-sm font-medium transition-all duration-(--dur-fast) ease-out",
               active
                 ? "bg-paper-strong text-ink shadow-(--shadow-paper) -translate-y-[1px]"
-                : "text-ink/75 hover:bg-paper-strong/70 hover:-translate-y-[1px]",
+                : "text-ink hover:bg-paper-strong/75 hover:-translate-y-[1px]",
             )}
           >
             {active ? (
               /* 当前页标记：左侧一小片冲切彩纸 */
               <span aria-hidden className="absolute -left-1 top-1/2 h-5 w-2 -translate-y-1/2 rounded-r-[3px] bg-sage shadow-[1px_0_2px_rgba(76,58,39,0.2)]" />
             ) : null}
-            <span aria-hidden className="w-5 text-center text-lg leading-none opacity-80">{item.icon}</span>
+            <span aria-hidden className="w-5 text-center text-lg leading-none">{item.icon}</span>
             <span className="flex-1">{item.label}</span>
-            <span className="text-[10px] text-ink-faint">{item.hint}</span>
+            <span className="text-[10px] text-ink-muted">{item.hint}</span>
           </Link>
         );
       })}
 
-      <div className="mt-auto flex items-center justify-between px-3 pt-6 text-xs text-ink-muted">
+      <div className="mt-auto flex items-center justify-between px-3 pt-6 text-xs text-ink">
         <span className="hand-note truncate">{displayName}</span>
         <button
           type="button"

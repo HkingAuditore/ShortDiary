@@ -8,31 +8,32 @@
  */
 
 @theme {
-  --color-paper-bg: #d8b98f;
-  --color-paper-bg-deep: #cfae82;
-  --color-paper-deep: #c2a075;
+  --color-paper-bg: #e0c79a;
+  --color-paper-bg-deep: #d6ba8b;
+  --color-paper-deep: #c9ac7d;
   --color-paper-corrugated: #b8905f;
-  --color-paper-card: #f7f1e7;
-  --color-paper-strong: #fff9ef;
-  --color-ink: #3f3933;
-  --color-ink-muted: #7f7469;
-  --color-ink-faint: #a89a8c;
+  --color-paper-card: #fdf9ef;
+  --color-paper-strong: #fffdf6;
+  --color-ink: #2e2925;
+  --color-ink-muted: #5f5349;
+  --color-ink-faint: #7d6d60;
   --color-sage: #6e8b72;
   --color-sun: #e9b64f;
   --color-rose: #d88e86;
   --color-sky: #79a9bc;
 
-  --radius-card: 6px;
+  --radius-card: 10px;
   --shadow-paper: 0 8px 22px rgba(76, 58, 39, 0.16);
   --shadow-paper-hover: 0 12px 28px rgba(76, 58, 39, 0.2);
   --shadow-torn: 0 2px 0 rgba(255, 255, 255, 0.6) inset;
 
-  --font-serif-cn: "Songti SC", "SimSun", "Noto Serif CJK SC", "Source Han Serif SC", serif;
-  --font-hand: "Segoe Script", "Bradley Hand", cursive;
+  /* 中文衬线：优先思源宋体（Win 可装），SimSun 兜底但排后 */
+  --font-serif-cn: "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
+  --font-hand: "LXGW WenKai Screen", "LXGW WenKai", "Kaiti SC", "STKaiti", "KaiTi", "楷体", "Segoe Script", "Bradley Hand", cursive;
 }
 
 :root {
-  --paper-noise-opacity: 0.085;
+  --paper-noise-opacity: 0.05;
   --torn-opacity: 1;
   --paper-edge: rgba(95, 68, 42, 0.18);
   --paper-stage-glow: rgba(255, 248, 232, 0.42);
@@ -57,10 +58,11 @@ body {
 body {
   position: relative;
   overflow-x: hidden;
+  /* 桌面层：牛皮纸底色 + 极淡的 SVG 细纹（位图瓦楞纸照片已移除——
+     那是包装箱材质，明暗条纹会直接吃掉文字） */
   background:
-    linear-gradient(rgba(216,185,143,.58), rgba(216,185,143,.58)),
-    url("/art-kit/assets/bitmap/corrugated-kraft-v1.png") center / 720px 720px repeat,
-    var(--color-paper-bg);
+    url("/art-kit/assets/texture/paper-grain.svg") center / 260px 260px repeat,
+    linear-gradient(172deg, #e4cc9f 0%, #ddc494 55%, #d3b787 100%);
   color: var(--color-ink);
   font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 15px;
@@ -76,7 +78,7 @@ body::before {
   pointer-events: none;
   background-image: url("/art-kit/assets/texture/paper-grain.svg");
   background-size: 256px 256px;
-  opacity: 0.22;
+  opacity: 0.14;
   mix-blend-mode: multiply;
 }
 
@@ -113,17 +115,19 @@ body::after {
   isolation: isolate;
 }
 
-/* 中央主舞台是一张铺在桌面上的大纸，而不是悬浮的 SaaS 白板。
-   纸张只承载内容层，纹理保持低对比，避免抢正文。 */
+/* 中央主舞台是一张铺在桌面上的大纸：纯色米纸 + clip-path 撕边。
+   旧版把「撕纸照片」拉伸平铺，照片里烘焙的边缘与 clip-path 对不上，
+   且照片自带白底会把撕边外圈染白 —— 资产与排版对不上的根源，已移除。 */
 .paper-main-stage::after {
   content: "";
   position: absolute;
   z-index: -2;
-  inset: 0.25rem -0.15rem 0.75rem;
-  background:
-    linear-gradient(rgba(255,250,240,.16), rgba(255,250,240,.16)),
-    url("/art-kit/assets/bitmap/torn-paper-sheet-v1.png") center / 100% 100% no-repeat;
-  filter: drop-shadow(0 18px 22px rgba(76,58,39,.22));
+  inset: 0.45rem 0.25rem 1.1rem;
+  background: #f3ead9;
+  box-shadow:
+    0 24px 44px rgba(76, 58, 39, 0.22),
+    0 2px 0 rgba(255, 255, 255, 0.75) inset;
+  clip-path: polygon(0.7% 1%, 12% 0.1%, 26% 1%, 42% 0.2%, 61% 1%, 78% 0.2%, 99.2% 1%, 100% 22%, 99.4% 50%, 100% 76%, 98.8% 99%, 82% 98.8%, 64% 100%, 45% 98.8%, 25% 100%, 8% 98.8%, 0.2% 99%, 0.8% 74%, 0 47%);
   transform: rotate(-0.18deg);
 }
 
@@ -142,17 +146,19 @@ body::after {
   opacity: 0.26;
 }
 
+/* 桌面小纸条：贴在舞台左下角，避开右上角的日期区与天气便签（两签不能打架） */
 .paper-scene-note {
   position: absolute;
-  right: 1.75rem;
-  top: 1.5rem;
+  left: 1.5rem;
+  bottom: 2.25rem;
   width: 7rem;
   height: 3rem;
-  transform: rotate(3deg);
+  transform: rotate(-3deg);
   background: var(--color-paper-strong);
-  box-shadow: 0 7px 15px rgba(76, 58, 39, 0.12);
-  opacity: 0.72;
+  box-shadow: 0 7px 15px rgba(76, 58, 39, 0.14);
+  opacity: 0.78;
   pointer-events: none;
+  z-index: -1;
 }
 
 .paper-scene-note::after {
@@ -167,11 +173,11 @@ body::after {
   /* 定位交给布局层的 sticky（Tailwind）——这里不能再写 position：
      手写规则未分层，会覆盖 @layer utilities 里的 .sticky，导致侧栏随页面滚走 */
   overflow: hidden;
+  /* 侧栏底：桌面同源但压深一档，用纸纹理 SVG 而非瓦楞纸照片（条纹吃字） */
   background:
-    linear-gradient(180deg, rgba(255, 247, 228, 0.16), transparent 45%),
-    url("/art-kit/assets/bitmap/corrugated-kraft-v1.png") center / 520px 520px,
-    var(--color-paper-bg-deep);
-  box-shadow: inset -12px 0 22px rgba(76, 58, 39, 0.08);
+    url("/art-kit/assets/texture/paper-grain.svg") center / 240px 240px,
+    linear-gradient(180deg, #d9bd8f, #cfae7e);
+  box-shadow: inset -14px 0 26px rgba(76, 58, 39, 0.12);
 }
 
 .paper-sidebar::after {
@@ -204,10 +210,10 @@ body::after {
 .paper-composer {
   border: 1px solid rgba(95, 68, 42, 0.14);
   background:
-    linear-gradient(135deg, rgba(255,255,255,.44), transparent 45%),
+    linear-gradient(135deg, rgba(255,255,255,.5), transparent 45%),
     url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 420px 420px,
-    var(--color-paper-strong);
-  box-shadow: 0 12px 28px rgba(76, 58, 39, 0.16), 0 1px 0 rgba(255,255,255,.7) inset;
+    var(--color-paper-card);
+  box-shadow: 0 14px 30px rgba(76, 58, 39, 0.18), 0 1px 0 rgba(255,255,255,.7) inset;
   border-radius: 13px 10px 14px 9px;
 }
 
@@ -218,7 +224,7 @@ body::after {
   font-size: 16px;
 }
 
-.paper-composer textarea::placeholder { color: rgba(127,116,105,.68); }
+.paper-composer textarea::placeholder { color: rgba(102, 91, 80, 0.75); }
 
 .paper-composer::after {
   content: "";
@@ -237,7 +243,7 @@ body::after {
   border-left: 3px solid rgba(110, 139, 114, 0.36);
   border-radius: 10px 7px 12px 8px;
   background:
-    linear-gradient(100deg, rgba(255,255,255,.38), transparent 30%),
+    linear-gradient(100deg, rgba(255,255,255,.42), transparent 30%),
     url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 360px 360px,
     var(--color-paper-card);
 }
@@ -247,8 +253,15 @@ body::after {
     linear-gradient(rgba(255,250,240,.22), rgba(255,250,240,.22)),
     url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png");
   background-size: auto, 380px 380px;
-  background-blend-mode: screen, multiply;
+  background-blend-mode: normal, multiply;
+  color: var(--color-ink);
 }
+
+/* 侧栏文字可读性：浅纹理底上直接用墨色高对比，禁止透明白描边 */
+.paper-sidebar a,
+.paper-sidebar button { color: var(--color-ink); }
+
+.paper-sidebar a:not([aria-current="page"]) { text-shadow: none; }
 
 .paper-date-tab {
   position: relative;
@@ -341,6 +354,12 @@ body::after {
   clip-path: polygon(0.8% 1.8%, 31% 0.4%, 58% 1.4%, 86% 0, 100% 2%, 99.4% 52%, 100% 92%, 99% 100%, 71% 98.8%, 39% 100%, 12% 98.6%, 0 100%, 0.4% 66%, 1% 24%);
 }
 
+/* 撕边卡的真实投影：clip-path 会裁掉 box-shadow，撕边卡一律走 drop-shadow，
+   让阴影跟随撕边轮廓而不是矩形框（否则撕边外圈出现矩形阴影破绽） */
+.torn-1, .torn-2, .torn-3, .torn-4 {
+  filter: drop-shadow(0 10px 18px rgba(76, 58, 39, 0.2));
+}
+
 /* ───────────────────────── 瓦楞纸：只在结构层少量出现 ───────────────────────── */
 
 .corrugated {
@@ -409,12 +428,16 @@ body::after {
   z-index: -1;
   border-radius: inherit;
   background: var(--color-paper-deep);
-  opacity: 0.2;
+  opacity: 0.16;
   pointer-events: none;
 }
 
-.paper-stack::before { transform: rotate(-0.8deg) translate(-4px, 3px); }
-.paper-stack::after { transform: rotate(0.65deg) translate(4px, -2px); opacity: 0.12; }
+/* 衬纸与卡片同为浅色：衬纸必须先投影，卡片轮廓才分得开 */
+.paper-stack::before {
+  transform: rotate(-0.8deg) translate(-4px, 3px);
+  filter: drop-shadow(0 5px 9px rgba(76, 58, 39, 0.16));
+}
+.paper-stack::after { transform: rotate(0.65deg) translate(4px, -2px); opacity: 0.1; }
 
 /* 图片落在桌面上：scale .96→1 + 轻微角度 */
 @keyframes photo-settle {

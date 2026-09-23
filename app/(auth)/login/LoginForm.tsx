@@ -82,7 +82,7 @@ export function LoginForm() {
           </PaperButton>
         </form>
 
-        <div className="mt-5 flex items-center justify-between text-[11px] text-ink-faint">
+        <div className="mt-5 flex items-center justify-between text-[12px] text-ink-muted">
           <span className="hand-note">每一页都收在你的抽屉里</span>
           <a className="paper-focus underline decoration-sage/50 underline-offset-2 transition-colors hover:text-ink" href="/register">
             有邀请码？注册

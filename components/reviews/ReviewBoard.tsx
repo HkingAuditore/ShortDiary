@@ -124,7 +124,7 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
             />
           </label>
         </div>
-        <p className="mt-1.5 text-xs text-ink-faint">留空则以今天为锚点 · 时区 {timezone}</p>
+        <p className="mt-1.5 text-xs text-ink-muted">留空则以今天为锚点 · 时区 {timezone}</p>
       </section>
 
       {list.isLoading ? (
@@ -134,7 +134,7 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
       {rows.length === 0 && !list.isLoading ? (
         <div className="py-10 text-center">
           <p className="hand-note text-base text-ink-muted">还没有复盘。先写几天记录，再点上面的按钮。</p>
-          <p className="mt-2 text-xs text-ink-faint">复盘不会改动你的任何一行原文</p>
+          <p className="mt-2 text-xs text-ink-muted">复盘不会改动你的任何一行原文</p>
         </div>
       ) : null}
 
@@ -159,7 +159,7 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
                       {TYPE_LABEL[r.type as ReviewType] ?? r.type} · {formatChineseDate(r.startDate)}
                       {r.startDate !== r.endDate ? ` — ${formatChineseDate(r.endDate)}` : ""}
                     </h2>
-                    <p className="mt-0.5 text-[11px] text-ink-faint">
+                    <p className="mt-0.5 text-[11px] text-ink-muted">
                       {pending ? "生成中…" : r.status === "failed" ? "生成失败" : `模型 ${r.model || "—"} · v${r.promptVersion}`}
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
                 </header>
 
                 {pending ? (
-                  <p className="mt-4 flex items-center gap-1 text-xs text-ink-faint">
+                  <p className="mt-4 flex items-center gap-1 text-xs text-ink-muted">
                     AI 正在翻阅这段日子
                     <span className="ink-dot" />
                     <span className="ink-dot" style={{ animationDelay: "0.2s" }} />
@@ -230,7 +230,7 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
                     ) : null}
 
                     {c.keywords?.length ? (
-                      <p className="hand-note text-xs text-ink-faint">{c.keywords.map((k) => `#${k}`).join("  ")}</p>
+                      <p className="hand-note text-xs text-ink-muted">{c.keywords.map((k) => `#${k}`).join("  ")}</p>
                     ) : null}
                   </div>
                 )}

@@ -19,11 +19,11 @@ export default async function ReviewsPage() {
         复盘不是压缩，而是把一段时间重新组织成
         <span className="text-ink">「发生了什么 — 哪些反复出现 — 什么值得记住」</span>。
       </p>
-      <p className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-ink-faint">
+      <p className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-ink-muted">
         <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-sage/70" />
         每个结论都来自你的原文，AI 不会改动任何一行。
       </p>
-      <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-ink-faint">
+      <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-ink-muted">
         <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-sun/80" />
         换了模型也可以随时「重新生成」。
       </p>

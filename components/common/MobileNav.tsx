@@ -35,7 +35,7 @@ export function MobileNav() {
             aria-current={active ? "page" : undefined}
             className={clsx(
               "paper-focus relative flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 pt-1.5 pb-1.5 text-xs font-medium transition-all duration-(--dur-fast)",
-              active ? "text-ink" : "text-ink/70",
+              active ? "text-ink" : "text-ink/80",
             )}
           >
             {/* 当前项：一枚冲切小纸片垫在底下，微微歪着 —— relative 提层，避免被山峦伪元素盖住 */}

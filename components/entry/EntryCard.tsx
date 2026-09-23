@@ -104,7 +104,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       className={["paper-entry-card scroll-mt-6 p-4", entry.aiStatus === "pending" ? "ai-scanning" : ""].join(" ")}
     >
       <header className="flex items-start justify-between gap-2">
-        <time dateTime={entry.occurredAt} className="hand-note text-xs">
+        <time dateTime={entry.occurredAt} className="hand-note text-[13px] text-ink">
           {timeInTimeZone(entry.occurredAt, timezone)}
         </time>
 
@@ -116,7 +116,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
             onClick={() => patch.mutate({ starred: !entry.starred })}
             className={[
               "paper-focus px-1 text-base leading-none transition-transform duration-(--dur-fast) hover:scale-110",
-              entry.starred ? "text-sun" : "text-ink-faint",
+              entry.starred ? "text-sun" : "text-ink-muted",
             ].join(" ")}
           >
             {entry.starred ? "★" : "☆"}
@@ -181,8 +181,8 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       <EntryImages assets={entry.assets} seedBase={entry.id} />
 
       {showAi ? (
-        <div className="mt-3 rounded-l-[6px] rounded-r-[2px] border-l-2 border-sage/50 bg-sage/8 px-2.5 py-2 text-xs leading-relaxed text-ink/85">
-          <HandNote className="mr-1.5 text-sage">AI 附注</HandNote>
+        <div className="mt-3 rounded-l-[6px] rounded-r-[2px] border-l-2 border-sage/50 bg-sage/10 px-2.5 py-2 text-xs leading-relaxed text-ink/90">
+          <HandNote className="mr-1.5 text-[13px] text-sage-dark">AI 附注</HandNote>
           {ai?.summary ? <p>{ai.summary}</p> : null}
           {ai?.topics?.length ? (
             <p className="mt-1 flex flex-wrap gap-1 text-ink-muted">
@@ -195,7 +195,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
           ) : null}
         </div>
       ) : entry.aiStatus === "pending" ? (
-        <p className="mt-3 flex items-center gap-1 text-xs text-ink-faint">
+        <p className="mt-3 flex items-center gap-1 text-xs text-ink-muted">
           AI 整理中
           <span className="ink-dot" />
           <span className="ink-dot" style={{ animationDelay: "0.2s" }} />

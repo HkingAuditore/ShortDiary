@@ -248,7 +248,7 @@ export function Composer({ timezone, today }: ComposerProps) {
         placeholder="刚刚发生了什么？像发消息一样写下来……（⌘/Ctrl + Enter 发送）"
         aria-label="记录正文"
         maxLength={20000}
-        className="paper-focus w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-faint"
+        className="paper-focus w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-muted/85"
       />
 
       {images.length > 0 ? (

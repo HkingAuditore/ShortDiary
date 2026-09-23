@@ -128,7 +128,7 @@ export function EntryList({
     return (
       <div className="px-1 py-10 text-center">
         <p className="hand-note text-base text-ink-muted">{emptyHint}</p>
-        <p className="mt-2 text-xs text-ink-faint">写下的每一个字都会被好好收着</p>
+        <p className="mt-2 text-xs text-ink-muted/90">写下的每一个字都会被好好收着</p>
       </div>
     );
   }
@@ -159,7 +159,7 @@ export function EntryList({
                     {relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}
                   </span>
                   {relativeDayLabel(row.date, today) ? (
-                    <span className="hand-note text-xs text-ink-faint">{row.date}</span>
+                    <span className="hand-note text-xs text-ink-muted">{row.date}</span>
                   ) : null}
                 </h2>
               ) : (
@@ -173,10 +173,10 @@ export function EntryList({
       </ol>
 
       {query.isFetchingNextPage ? (
-        <p className="py-4 text-center text-xs text-ink-faint">正在翻更早的纸页…</p>
+        <p className="py-4 text-center text-xs text-ink-muted">正在翻更早的纸页…</p>
       ) : null}
       {!query.hasNextPage && rows.length > 0 ? (
-        <p className="hand-note py-6 text-center text-xs text-ink-faint">— 已经翻到最开始了 —</p>
+        <p className="hand-note py-6 text-center text-xs text-ink-muted">— 已经翻到最开始了 —</p>
       ) : null}
     </div>
   );

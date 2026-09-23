@@ -300,10 +300,10 @@ function ProviderSection() {
                     {p.lastTestOk === true ? <span className="text-[11px] text-sage">● 连接正常</span> : null}
                     {p.lastTestOk === false ? <span className="text-[11px] text-rose">● 上次测试失败</span> : null}
                   </p>
-                  <p className="mt-0.5 truncate text-[11px] text-ink-faint">
+                  <p className="mt-0.5 truncate text-[11px] text-ink-muted">
                     {PROTOCOL_LABELS[p.protocol as Protocol] ?? p.protocol} · {p.baseUrl} · Key {p.keyHint}
                   </p>
-                  <p className="text-[11px] text-ink-faint">
+                  <p className="text-[11px] text-ink-muted">
                     {p.models.map((m) => `${m.role}:${m.modelName}`).join("  ") || "未配置模型"}
                   </p>
                 </div>
@@ -488,7 +488,7 @@ function DataSection() {
                 <a className="paper-focus underline decoration-dotted underline-offset-2 transition-colors hover:text-ink" href={`/api/export/${e.id}`}>
                   {e.filename}
                 </a>
-                <span className="text-ink-faint">
+                <span className="text-ink-muted">
                   {(e.sizeBytes / 1024).toFixed(0)} KB · {new Date(e.createdAt).toLocaleString("zh-CN")}
                 </span>
               </li>

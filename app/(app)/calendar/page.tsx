@@ -31,7 +31,7 @@ export default async function CalendarPage() {
           黄点 = 那天有星标
         </span>
       </p>
-      <p className="mt-2 text-xs leading-relaxed text-ink-faint">点击任意有记录的日期，直接翻到那一天。</p>
+      <p className="mt-2 text-xs leading-relaxed text-ink-muted">点击任意有记录的日期，直接翻到那一天。</p>
       <HandNote className="mt-3 block text-[11px]">翘起来的小纸片就是写过字的日子</HandNote>
     </AsideCard>
   );

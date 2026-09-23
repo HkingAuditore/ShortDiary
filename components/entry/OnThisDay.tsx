@@ -15,7 +15,7 @@ export async function OnThisDay({ userId, timezone }: { userId: string; timezone
   return (
     <section
       aria-label="一年前的今天"
-      className="paper-drop relative bg-paper-strong/80 px-4 py-3.5 shadow-(--shadow-paper)"
+      className="paper-drop relative bg-paper-card px-4 py-3.5 shadow-(--shadow-paper)"
     >
       <span aria-hidden className="tape absolute -top-2 right-6 h-3.5 w-14 rounded-[1px] opacity-70" />
       <span aria-hidden className="paper-noise pointer-events-none absolute inset-0" />
@@ -26,8 +26,8 @@ export async function OnThisDay({ userId, timezone }: { userId: string; timezone
         </h2>
         <ul className="space-y-2">
           {items.map((m) => (
-            <li key={m.id} className="border-l-2 border-sun/50 pl-2.5 text-xs leading-relaxed text-ink/80">
-              <span className="hand-note mr-1.5 text-[11px] text-ink-faint">
+            <li key={m.id} className="border-l-2 border-sun/60 pl-2.5 text-xs leading-relaxed text-ink/90">
+              <span className="hand-note mr-1.5 text-[12px] text-ink-muted">
                 {formatChineseDate(m.entryDate).replace(/·.*$/, "").trim()}
               </span>
               {m.content.length > 90 ? `${m.content.slice(0, 90)}…` : m.content}

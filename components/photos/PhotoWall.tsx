@@ -54,7 +54,7 @@ export function PhotoWall() {
     return (
       <div className="py-12 text-center">
         <p className="hand-note text-base text-ink-muted">还没有照片。写一条带图记录试试。</p>
-        <p className="mt-2 text-xs text-ink-faint">照片会自动变成拍立得的样子</p>
+        <p className="mt-2 text-xs text-ink-muted">照片会自动变成拍立得的样子</p>
       </div>
     );
   }
@@ -80,9 +80,9 @@ export function PhotoWall() {
       </div>
 
       <div ref={sentinel} className="h-8" />
-      {query.isFetchingNextPage ? <p className="text-center text-xs text-ink-faint">正在拿出更多照片…</p> : null}
+      {query.isFetchingNextPage ? <p className="text-center text-xs text-ink-muted">正在拿出更多照片…</p> : null}
       {!query.hasNextPage && photos.length > 0 ? (
-        <p className="hand-note py-6 text-center text-xs text-ink-faint">— 桌上的照片都摆出来了 —</p>
+        <p className="hand-note py-6 text-center text-xs text-ink-muted">— 桌上的照片都摆出来了 —</p>
       ) : null}
     </>
   );

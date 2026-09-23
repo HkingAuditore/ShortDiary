@@ -53,7 +53,7 @@ export function SearchClient({ timezone, today }: { timezone: string; today: str
             onChange={(e) => setQ(e.target.value)}
             placeholder="搜一句话、一个人名、一个地方……"
             aria-label="搜索关键词"
-            className="paper-focus w-full bg-transparent text-[15px] outline-none placeholder:text-ink-faint"
+            className="paper-focus w-full bg-transparent text-[15px] outline-none placeholder:text-ink-muted/85"
           />
         </div>
 

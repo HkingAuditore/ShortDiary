@@ -90,7 +90,7 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] text-ink-faint">
+      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-ink-muted">
         {WEEKDAYS.map((w) => (
           <div key={w} className="py-1">
             {w}
@@ -125,7 +125,7 @@ export function CalendarBoard({ initialYear, initialMonth, timezone }: { initial
               )}
               style={tilt !== 0 ? { transform: `rotate(${tilt}deg)` } : undefined}
             >
-              <span className={clsx(stat ? "font-medium text-ink" : "text-ink-faint")}>{inMonth ? day : ""}</span>
+              <span className={clsx(stat ? "font-medium text-ink" : "text-ink-muted")}>{inMonth ? day : ""}</span>
               <span aria-hidden className="mt-1 flex h-1.5 items-center gap-0.5">
                 {stat
                   ? Array.from({ length: Math.min(stat.count, 4) }).map((_, i) => (

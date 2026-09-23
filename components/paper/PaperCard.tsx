@@ -88,7 +88,7 @@ export function PaperButton({
       "bg-sage text-paper-strong shadow-(--shadow-paper) ring-1 ring-sage/60 ring-inset hover:brightness-105 active:translate-y-[1px] active:shadow-none",
     secondary:
       "bg-paper-strong text-ink border border-ink/15 shadow-[0_1px_0_rgba(76,58,39,0.12)] hover:border-ink/25 active:translate-y-[1px] active:shadow-none",
-    ghost: "bg-transparent text-ink-muted hover:text-ink hover:bg-ink/5 active:translate-y-[1px]",
+    ghost: "bg-transparent text-ink-muted hover:text-ink hover:bg-ink/8 active:translate-y-[1px]",
     danger: "bg-rose/90 text-paper-strong shadow-(--shadow-paper) ring-1 ring-rose/50 ring-inset hover:brightness-105 active:translate-y-[1px] active:shadow-none",
   } as const;
 
@@ -109,11 +109,11 @@ export function PaperButton({
 /* ───────────────────────── 标签 Chip：彩色纸片冲切 ───────────────────────── */
 
 const CHIP_TOKENS: Record<string, string> = {
-  sage: "bg-sage/18 text-sage border-sage/35",
-  sun: "bg-sun/22 text-[#8a6415] border-sun/45",
-  rose: "bg-rose/22 text-[#9b4f47] border-rose/45",
-  sky: "bg-sky/22 text-[#3d6b80] border-sky/45",
-  ink: "bg-ink/10 text-ink border-ink/25",
+  sage: "bg-sage/25 text-[#3f5c44] border-sage/50",
+  sun: "bg-sun/30 text-[#7d5a10] border-sun/60",
+  rose: "bg-rose/28 text-[#8c443c] border-rose/55",
+  sky: "bg-sky/28 text-[#33596c] border-sky/55",
+  ink: "bg-ink/10 text-ink border-ink/30",
 };
 
 export function TagChip({
@@ -136,7 +136,7 @@ export function TagChip({
       onClick={onClick}
       className={clsx(
         // 冲切感：一侧直角一侧圆角 + 细虚线描边模拟裁切痕
-        "paper-focus inline-flex h-6 items-center rounded-l-[7px] rounded-r-[3px] border border-dashed px-2 text-xs leading-none transition-all duration-(--dur-fast)",
+        "paper-focus inline-flex h-6 items-center rounded-l-[7px] rounded-r-[3px] border border-dashed px-2 text-xs font-medium leading-none transition-all duration-(--dur-fast)",
         base,
         active && "ring-1 ring-ink/45",
         onClick ? "cursor-pointer hover:-translate-y-[1px] hover:shadow-[0_2px_6px_rgba(76,58,39,0.18)]" : "cursor-default",
