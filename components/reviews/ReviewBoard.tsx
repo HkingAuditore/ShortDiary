@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { apiGet, apiSend } from "@/lib/api/client";
-import { PaperButton, PaperCard, TagChip } from "@/components/paper/PaperCard";
+import { PaperButton, PaperCard, TagChip, WashiTape } from "@/components/paper/PaperCard";
 import { useToast } from "@/components/common/Toast";
 import { formatChineseDate } from "@/lib/utils/date";
 
@@ -106,29 +106,37 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
 
   return (
     <div className="space-y-4">
-      <section className="paper-noise relative rounded-(--radius-card) bg-paper-strong p-4 shadow-(--shadow-paper)">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="hand-note mr-1 hidden text-xs sm:inline">选一段时间，让 AI 帮你重新看见它 →</span>
-          {(Object.keys(TYPE_LABEL) as ReviewType[]).map((t) => (
-            <PaperButton key={t} variant={t === "weekly" ? "primary" : "secondary"} disabled={request.isPending} onClick={() => request.mutate(t)}>
-              生成{TYPE_LABEL[t]}
-            </PaperButton>
-          ))}
-          <label className="ml-auto flex items-center gap-1.5 text-xs text-ink-muted">
-            <span>锚点日期</span>
-            <input
-              type="date"
-              value={anchor}
-              onChange={(e) => setAnchor(e.target.value)}
-              className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-ink"
-            />
-          </label>
+      {/* 生成区 = 一张便签纸：这只是「下单」，不是复盘本身 */}
+      <section className="paper-piece paper-drop deckle-4">
+        <span aria-hidden className="paper-sheet" style={{ "--sheet-color": "#fbf6e9" } as React.CSSProperties} />
+        <WashiTape seed="review-ctl" className="-top-2.5 left-1/3 h-[1.1rem] w-[4.6rem]" />
+        <div className="px-4 py-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="hand-note mr-1 hidden text-xs sm:inline">选一段时间，让 AI 帮你重新看见它 →</span>
+            {(Object.keys(TYPE_LABEL) as ReviewType[]).map((t) => (
+              <PaperButton key={t} variant={t === "weekly" ? "primary" : "secondary"} disabled={request.isPending} onClick={() => request.mutate(t)}>
+                生成{TYPE_LABEL[t]}
+              </PaperButton>
+            ))}
+            <label className="ml-auto flex items-center gap-1.5 text-xs text-ink-muted">
+              <span>锚点日期</span>
+              <input
+                type="date"
+                value={anchor}
+                onChange={(e) => setAnchor(e.target.value)}
+                className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-2 py-1 text-ink"
+              />
+            </label>
+          </div>
+          <p className="mt-1.5 text-xs text-ink-muted">留空则以今天为锚点 · 时区 {timezone}</p>
         </div>
-        <p className="mt-1.5 text-xs text-ink-muted">留空则以今天为锚点 · 时区 {timezone}</p>
       </section>
 
       {list.isLoading ? (
-        <div className="h-28 animate-pulse rounded-(--radius-card) bg-paper-card/70" />
+        <div className="paper-piece deckle-1">
+          <span aria-hidden className="paper-sheet" />
+          <div className="h-28" />
+        </div>
       ) : null}
 
       {rows.length === 0 && !list.isLoading ? (
@@ -152,7 +160,8 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
             >
-              <PaperCard seed={r.id} tape className={["p-4", pending ? "ai-scanning" : ""].join(" ")}>
+              <PaperCard seed={r.id} tape clip stack={!pending} className={["px-4 py-4", pending ? "ai-scanning-wrap" : ""].join(" ")}>
+                {pending ? <span aria-hidden className="ai-scan-layer" /> : null}
                 <header className="flex items-start justify-between gap-2">
                   <div>
                     <h2 className="font-(--font-serif-cn) text-base">

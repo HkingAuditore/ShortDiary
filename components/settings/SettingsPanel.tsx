@@ -36,6 +36,19 @@ interface ProviderView {
   models: Array<{ role: string; modelName: string }>;
 }
 
+/** 系统内置默认（服务端环境变量提供）的只读快照；不含任何可用密钥 */
+interface BuiltinView {
+  id: string;
+  enabled: boolean;
+  forced: boolean;
+  name: string;
+  baseUrl: string;
+  model: string;
+  visionModel: string | null;
+  keyHint: string | null;
+  jsonMode: boolean;
+}
+
 interface ExportRecord {
   id: string;
   kind: string;
@@ -66,12 +79,12 @@ function SettingsTabs({ tab, setTab }: { tab: TabKey; setTab: (t: TabKey) => voi
             type="button"
             onClick={() => setTab(t.key)}
             className={clsx(
-              "paper-focus rounded-l-[7px] rounded-r-[3px] px-4 py-1.5 text-sm transition-all duration-(--dur-fast) ease-out",
+              "paper-focus rounded-l-[7px] rounded-r-[3px] px-4 py-1.5 text-sm transition-all duration-(--dur-normal) ease-(--ease-spring-soft)",
               active
-                ? "-translate-y-[2px] bg-paper-strong text-ink shadow-(--shadow-paper) ring-1 ring-ink/10"
-                : "rotate-[0.6deg] bg-paper-card/80 text-ink/70 hover:-translate-y-[1px] hover:text-ink",
+                ? "-translate-y-[2.5px] bg-paper-strong text-ink shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_1px_1px_rgba(74,55,34,.22),0_5px_9px_-3px_rgba(74,55,34,.3)]"
+                : "bg-paper-card/80 text-ink/70 hover:-translate-y-[1.5px] hover:text-ink hover:shadow-[0_2px_6px_-2px_rgba(74,55,34,.26)]",
             )}
-            style={active ? undefined : { transform: `rotate(${(i - 1) * 0.7}deg)` }}
+            style={active ? undefined : { rotate: `${(i - 1) * 0.7}deg` }}
           >
             {t.label}
           </button>
@@ -209,7 +222,19 @@ function ProviderSection() {
     staleTime: 60_000,
   });
 
+  const builtin = useQuery({
+    queryKey: ["ai-builtin"],
+    queryFn: () => apiGet<BuiltinView>("/api/ai/builtin"),
+    staleTime: 60_000,
+  });
+
   const invalidate = () => void qc.invalidateQueries({ queryKey: ["providers"] });
+
+  const testBuiltin = useMutation({
+    mutationFn: () => apiSend<{ ok: boolean; message: string }>("/api/ai/builtin", "POST", {}),
+    onSuccess: (res) => toast.push(res.ok ? "连接成功" : res.message || "连接失败", { tone: res.ok ? "success" : "error" }),
+    onError: (err: Error) => toast.push(err.message, { tone: "error" }),
+  });
 
   const create = useMutation({
     mutationFn: (body: unknown) => apiSend<ProviderView>("/api/ai/providers", "POST", body),
@@ -269,14 +294,68 @@ function ProviderSection() {
     }
   };
 
+  const noOwnProvider = (list.data?.length ?? 0) === 0;
+
   return (
     <div className="space-y-4">
+      <PaperCard seed="builtin-provider" className="p-5">
+        <h2 className="mb-1 font-(--font-serif-cn) text-base">系统内置默认</h2>
+        <HandNote className="mb-3 block text-[11px]">
+          {builtin.data?.enabled
+            ? builtin.data.forced
+              ? "服务端已锁定：所有 AI 调用都走内置默认"
+              : "你没配置自己的服务商时，AI 功能自动走它"
+            : "服务端未配置（AI_DEFAULT_API_KEY 为空），需要你自己添加服务商"}
+        </HandNote>
+
+        {builtin.data ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-l-[6px] rounded-r-[3px] border border-ink/10 bg-paper-strong/70 px-3.5 py-2.5">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 text-sm">
+                {builtin.data.name}
+                {builtin.data.enabled ? (
+                  <TagChip token="sage" className="h-5 text-[10px]">
+                    内置
+                  </TagChip>
+                ) : (
+                  <TagChip className="h-5 text-[10px]">未启用</TagChip>
+                )}
+                {builtin.data.enabled && noOwnProvider && !builtin.data.forced ? (
+                  <span className="text-[11px] text-sage">● 当前生效</span>
+                ) : null}
+              </p>
+              {builtin.data.enabled ? (
+                <>
+                  <p className="mt-0.5 truncate text-[11px] text-ink-muted">
+                    OpenAI 兼容 · {builtin.data.baseUrl} · Key {builtin.data.keyHint}
+                  </p>
+                  <p className="text-[11px] text-ink-muted">
+                    chat:{builtin.data.model}
+                    {builtin.data.visionModel ? `  vision:${builtin.data.visionModel}` : ""}
+                  </p>
+                </>
+              ) : null}
+            </div>
+
+            {builtin.data.enabled ? (
+              <PaperButton variant="secondary" className="px-2.5 py-1 text-xs" disabled={testBuiltin.isPending} onClick={() => testBuiltin.mutate()}>
+                测试连接
+              </PaperButton>
+            ) : null}
+          </div>
+        ) : null}
+      </PaperCard>
+
       <PaperCard seed="providers" className="p-5">
         <h2 className="mb-1 font-(--font-serif-cn) text-base">已配置的服务商</h2>
         <HandNote className="mb-3 block text-[11px]">AI 是可替换的分析器，你的数据不依赖任何一家</HandNote>
 
-        {list.data?.length === 0 ? (
-          <p className="text-sm text-ink-muted">还没有配置。AI 功能是可选的 —— 不配置也能正常记录。</p>
+        {noOwnProvider ? (
+          <p className="text-sm text-ink-muted">
+            {builtin.data?.enabled
+              ? "还没有配置，当前由系统内置默认接管。AI 功能是可选的 —— 不配置也能正常记录。"
+              : "还没有配置。AI 功能是可选的 —— 不配置也能正常记录。"}
+          </p>
         ) : null}
 
         <ul className="space-y-2.5">

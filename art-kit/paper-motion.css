@@ -214,3 +214,90 @@ html[data-simple="true"] .crayon-hl-rose {
  *
  * .crayon-fx { filter: url(#fx-crayon); }
  */
+
+/* ═════════════════ 精修动效 · 第二批（手账操作的物理感） ═════════════════ */
+
+/* ⑨ 纸片贴上桌面：先斜着落下，接触后顺时针摆正并压实（比 drop-spring 更"贴"） */
+@keyframes paste-down {
+  0% {
+    opacity: 0;
+    transform: translate3d(-10px, -22px, 0) rotate(-4.5deg) scale(1.035);
+    filter: drop-shadow(0 26px 30px rgba(74, 55, 34, 0.08));
+  }
+  52% {
+    opacity: 1;
+    transform: translate3d(2px, 3px, 0) rotate(1.4deg) scale(0.995);
+  }
+  76% { transform: translate3d(0, -1px, 0) rotate(-0.5deg) scale(1.002); }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 10px 16px rgba(74, 55, 34, 0.2));
+  }
+}
+.paste-down { animation: paste-down 560ms var(--ease-spring-soft) backwards; }
+
+/* ⑩ 逐张抽出：虚拟列表行不能用 transform 动画（行位置靠内联 transform 定位，
+   CSS 动画优先级更高会把整列行拽到 y=0），所以列表行只做「斜入淡出」：
+   opacity + 一层极小的 rotate 由子元素承担。 */
+@keyframes slip-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.slip-in { animation: slip-in 380ms var(--ease-paper) both; }
+.slip-in > * { animation: slip-tilt 520ms var(--ease-spring-soft) both; }
+@keyframes slip-tilt {
+  0% { rotate: -0.9deg; opacity: 0.4; }
+  60% { rotate: 0.35deg; opacity: 1; }
+  100% { rotate: 0deg; opacity: 1; }
+}
+
+/* ⑪ 撕纸删除：向右下撕走 + 边缘抖一下 */
+@keyframes tear-away {
+  0% { opacity: 1; transform: none; }
+  22% { transform: translate3d(-4px, 0, 0) rotate(-1.4deg); }
+  100% { opacity: 0; transform: translate3d(46px, 22px, 0) rotate(7deg) scale(0.94); }
+}
+.tear-away { animation: tear-away 340ms cubic-bezier(0.4, 0, 0.9, 0.4) both; }
+
+/* ⑫ 翻页：以左侧装订边为轴翻开，翻起侧同步加深阴影 */
+@keyframes page-turn-in {
+  0% { opacity: 0; transform: perspective(1200px) rotateY(-26deg) translateX(-18px); }
+  100% { opacity: 1; transform: perspective(1200px) rotateY(0) translateX(0); }
+}
+.page-turn-in {
+  transform-origin: left center;
+  animation: page-turn-in 420ms var(--ease-paper) both;
+}
+
+/* ⑬ 胶带按压：hover 时胶带被指尖压实一下 */
+@keyframes tape-press {
+  0% { transform: scaleY(1); }
+  50% { transform: scaleY(0.9) translateY(0.5px); }
+  100% { transform: scaleY(1); }
+}
+.washi-press:hover .washi { animation: tape-press 220ms var(--ease-paper); }
+
+/* ⑭ 纸面呼吸：极慢的亮度浮动，让静止画面不死板（0.6% 幅度，肉眼近乎察觉不到） */
+@keyframes paper-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.006); }
+}
+.paper-breathe { animation: paper-breathe 9s ease-in-out infinite; }
+
+/* ⑮ 手写字迹显影：像钢笔墨水渗进纸里 */
+@keyframes ink-bleed {
+  0% { opacity: 0; filter: blur(2.5px); letter-spacing: 0.06em; }
+  60% { opacity: 1; filter: blur(0.4px); }
+  100% { opacity: 1; filter: blur(0); letter-spacing: normal; }
+}
+.ink-bleed { animation: ink-bleed 620ms var(--ease-paper) both; }
+
+/* ⑯ 邮戳盖章：从大到小砸下去，带一次回弹 */
+@keyframes stamp-press {
+  0% { opacity: 0; transform: scale(2.1) rotate(-14deg); }
+  55% { opacity: 1; transform: scale(0.92) rotate(2deg); }
+  78% { transform: scale(1.04) rotate(-1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+.stamp-press { animation: stamp-press 480ms var(--ease-spring) both; }

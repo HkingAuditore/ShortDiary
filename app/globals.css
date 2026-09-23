@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../art-kit/paper-craft.css";
 @import "../art-kit/paper-motion.css";
 
 /**
@@ -58,11 +59,12 @@ body {
 body {
   position: relative;
   overflow-x: hidden;
-  /* 桌面层：牛皮纸底色 + 极淡的 SVG 细纹（位图瓦楞纸照片已移除——
-     那是包装箱材质，明暗条纹会直接吃掉文字） */
-  background:
-    url("/art-kit/assets/texture/paper-grain.svg") center / 260px 260px repeat,
-    linear-gradient(172deg, #e4cc9f 0%, #ddc494 55%, #d3b787 100%);
+  /* 桌面层：牛皮纸 —— 底色走大尺度色斑（纸浆不匀），纹理交给 ::before */
+  background-color: #ddc496;
+  background-image:
+    radial-gradient(120% 90% at 18% 8%, rgba(255, 248, 228, 0.5), transparent 52%),
+    radial-gradient(90% 80% at 88% 96%, rgba(120, 88, 50, 0.16), transparent 58%),
+    linear-gradient(168deg, #e6cfa4 0%, #ddc496 48%, #d0b382 100%);
   color: var(--color-ink);
   font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 15px;
@@ -70,26 +72,29 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* 桌面纤维：粗麻纹 + 颗粒，multiply 压进底色 */
 body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image: var(--kraft-fiber);
+  background-size: 360px 360px;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+
+/* 房间光：左上窗光打过来，右下自然暗下去（暗角让中央的纸更亮更聚焦） */
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background-image: url("/art-kit/assets/texture/paper-grain.svg");
-  background-size: 256px 256px;
-  opacity: 0.14;
-  mix-blend-mode: multiply;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(112deg, transparent 0 42%, rgba(255,255,255,.08) 50%, transparent 58%);
-  opacity: 0.65;
+  background:
+    radial-gradient(70% 55% at 22% 4%, rgba(255, 250, 232, 0.5), transparent 62%),
+    radial-gradient(130% 110% at 50% 46%, transparent 42%, rgba(88, 62, 34, 0.2) 100%);
 }
 
 .paper-app-shell {
@@ -98,16 +103,17 @@ body::after {
   min-height: 100vh;
 }
 
+/* 桌面远景：底部一层极淡的剪纸山峦，压在暗角之下当氛围底 */
 .paper-app-shell::before {
   content: "";
   position: fixed;
   inset: auto 0 0;
-  height: 165px;
+  height: 190px;
   z-index: -1;
   pointer-events: none;
   background: url("/art-kit/assets/papercut/hills.svg") bottom center / cover no-repeat;
-  opacity: 0.5;
-  filter: saturate(0.82);
+  opacity: 0.32;
+  filter: saturate(0.7) blur(0.4px);
 }
 
 .paper-main-stage {
@@ -115,24 +121,35 @@ body::after {
   isolation: isolate;
 }
 
-/* 中央主舞台是一张铺在桌面上的大纸：纯色米纸 + clip-path 撕边。
-   旧版把「撕纸照片」拉伸平铺，照片里烘焙的边缘与 clip-path 对不上，
-   且照片自带白底会把撕边外圈染白 —— 资产与排版对不上的根源，已移除。 */
+/* 中央主舞台 = 摊在桌上的一大张手工纸：
+   毛边遮罩 + 纸浆纤维 + 左上受光 + 三段投影，与 .paper-sheet 同一套语言。 */
 .paper-main-stage::after {
   content: "";
   position: absolute;
   z-index: -2;
   inset: 0.45rem 0.25rem 1.1rem;
-  background: #f3ead9;
-  box-shadow:
-    0 24px 44px rgba(76, 58, 39, 0.22),
-    0 2px 0 rgba(255, 255, 255, 0.75) inset;
-  clip-path: polygon(0.7% 1%, 12% 0.1%, 26% 1%, 42% 0.2%, 61% 1%, 78% 0.2%, 99.2% 1%, 100% 22%, 99.4% 50%, 100% 76%, 98.8% 99%, 82% 98.8%, 64% 100%, 45% 98.8%, 25% 100%, 8% 98.8%, 0.2% 99%, 0.8% 74%, 0 47%);
-  transform: rotate(-0.18deg);
+  background-color: #f6eddc;
+  background-image:
+    linear-gradient(180deg, rgba(255, 253, 246, 0.9) 0, transparent 4px),
+    linear-gradient(148deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 26%, transparent 52%),
+    radial-gradient(120% 110% at 97% 104%, rgba(122, 92, 56, 0.16), transparent 56%),
+    var(--paper-fiber);
+  background-size: auto, auto, auto, 320px 320px;
+  background-blend-mode: normal, normal, normal, multiply;
+  -webkit-mask-image: var(--deckle-2);
+  mask-image: var(--deckle-2);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter:
+    drop-shadow(0 2px 2px rgba(74, 55, 34, 0.24))
+    drop-shadow(0 12px 18px -4px rgba(74, 55, 34, 0.18))
+    drop-shadow(0 34px 48px -18px rgba(74, 55, 34, 0.3));
+  transform: rotate(-0.16deg);
 }
 
-.paper-page-heading { animation: drop-spring var(--dur-enter-long) var(--ease-spring-soft) both; }
+.paper-page-heading { animation: paste-down var(--dur-enter-long) var(--ease-spring-soft) both; }
 
+/* 舞台顶部氛围：剪纸太阳与云，压到很淡，只在余光里存在 */
 .paper-main-stage::before {
   content: "";
   position: absolute;
@@ -141,9 +158,9 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background:
-    url("/art-kit/assets/papercut/sun.svg") right 3% top / 5.8rem auto no-repeat,
-    url("/art-kit/assets/papercut/cloud.svg") left 1% top 1.2rem / 7rem auto no-repeat;
-  opacity: 0.26;
+    url("/art-kit/assets/papercut/sun.svg") right 3% top / 5.4rem auto no-repeat,
+    url("/art-kit/assets/papercut/cloud.svg") left 1% top 1.2rem / 6.6rem auto no-repeat;
+  opacity: 0.2;
 }
 
 /* 桌面小纸条：贴在舞台左下角，避开右上角的日期区与天气便签（两签不能打架） */
@@ -151,12 +168,20 @@ body::after {
   position: absolute;
   left: 1.5rem;
   bottom: 2.25rem;
-  width: 7rem;
-  height: 3rem;
-  transform: rotate(-3deg);
-  background: var(--color-paper-strong);
-  box-shadow: 0 7px 15px rgba(76, 58, 39, 0.14);
-  opacity: 0.78;
+  width: 7.5rem;
+  height: 3.2rem;
+  transform: rotate(-3.2deg);
+  background-color: #fffaef;
+  background-image:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.6), transparent 40%),
+    var(--paper-fiber);
+  background-size: auto, 200px 200px;
+  -webkit-mask-image: var(--deckle-4);
+  mask-image: var(--deckle-4);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter: drop-shadow(0 1px 1px rgba(74, 55, 34, 0.22)) drop-shadow(0 8px 12px rgba(74, 55, 34, 0.16));
+  opacity: 0.86;
   pointer-events: none;
   z-index: -1;
 }
@@ -164,20 +189,44 @@ body::after {
 .paper-scene-note::after {
   content: "今天也要留一笔";
   position: absolute;
-  inset: .55rem .65rem;
+  inset: .6rem .7rem;
   color: var(--color-ink-muted);
   font: 12px/1.35 var(--font-hand);
+  transform: rotate(0.6deg);
 }
 
 .paper-sidebar {
   /* 定位交给布局层的 sticky（Tailwind）——这里不能再写 position：
      手写规则未分层，会覆盖 @layer utilities 里的 .sticky，导致侧栏随页面滚走 */
   overflow: hidden;
-  /* 侧栏底：桌面同源但压深一档，用纸纹理 SVG 而非瓦楞纸照片（条纹吃字） */
-  background:
-    url("/art-kit/assets/texture/paper-grain.svg") center / 240px 240px,
-    linear-gradient(180deg, #d9bd8f, #cfae7e);
-  box-shadow: inset -14px 0 26px rgba(76, 58, 39, 0.12);
+  /* 侧栏 = 立在桌面左侧的牛皮纸板：同源纤维压深一档 + 右侧装订暗影 */
+  background-color: #d4b384;
+  background-image:
+    linear-gradient(100deg, rgba(255, 250, 235, 0.3), transparent 38%),
+    radial-gradient(110% 60% at 50% 0%, rgba(255, 250, 235, 0.32), transparent 55%),
+    var(--kraft-fiber);
+  background-size: auto, auto, 360px 360px;
+  background-blend-mode: normal, normal, multiply;
+  box-shadow:
+    inset -18px 0 26px -14px rgba(74, 55, 34, 0.3),
+    inset -1px 0 0 rgba(74, 55, 34, 0.18),
+    6px 0 18px -8px rgba(74, 55, 34, 0.2);
+}
+
+/* 侧栏装订孔：左沿一列打孔，和活页本一致 */
+.paper-sidebar::before {
+  content: "";
+  position: absolute;
+  left: 0.42rem;
+  top: 1.6rem;
+  bottom: 1.6rem;
+  width: 0.5rem;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 50%, rgba(120, 92, 56, 0.34) 0 42%, transparent 44%);
+  background-size: 100% 4.4rem;
+  background-repeat: repeat-y;
+  filter: drop-shadow(0 1px 0 rgba(255, 252, 244, 0.6));
+  opacity: 0.8;
 }
 
 .paper-sidebar::after {
@@ -189,7 +238,7 @@ body::after {
   background:
     url("/art-kit/assets/papercut/plant.svg") 12% bottom / 7rem auto no-repeat,
     url("/art-kit/assets/papercut/hills.svg") center bottom / 180% auto no-repeat;
-  opacity: 0.76;
+  opacity: 0.62;
 }
 
 .paper-nav-brand {
@@ -207,14 +256,62 @@ body::after {
   opacity: 0.58;
 }
 
+/* 输入区 = 一张刚撕下来的横线便签：格线 + 页边红线 + 纸纤维。
+   它是全站唯一一张「正在写」的纸，所以受光最强、投影最实。 */
 .paper-composer {
-  border: 1px solid rgba(95, 68, 42, 0.14);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.5), transparent 45%),
-    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 420px 420px,
-    var(--color-paper-card);
-  box-shadow: 0 14px 30px rgba(76, 58, 39, 0.18), 0 1px 0 rgba(255,255,255,.7) inset;
-  border-radius: 13px 10px 14px 9px;
+  position: relative;
+  isolation: isolate;
+  border-radius: 2px;
+}
+
+.paper-composer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: #fdfaf1;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0, transparent 4px),
+    linear-gradient(148deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.12) 24%, transparent 50%),
+    radial-gradient(120% 110% at 97% 105%, rgba(122, 92, 56, 0.15), transparent 55%),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 27px,
+      rgba(121, 169, 188, 0.2) 27px 28px
+    ),
+    var(--paper-fiber);
+  background-size: auto, auto, auto, auto, 320px 320px;
+  background-position: 0 0, 0 0, 0 0, 0 3.1rem, 0 0;
+  background-blend-mode: normal, normal, normal, normal, multiply;
+  -webkit-mask-image: var(--deckle-1);
+  mask-image: var(--deckle-1);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter:
+    drop-shadow(0 1px 1px rgba(74, 55, 34, 0.26))
+    drop-shadow(0 6px 10px -2px rgba(74, 55, 34, 0.2))
+    drop-shadow(0 22px 32px -12px rgba(74, 55, 34, 0.26));
+  transition: filter var(--dur-normal) var(--ease-paper);
+}
+
+/* 页边线：写字区左侧那道淡红竖线 */
+.paper-composer::after {
+  content: "";
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  left: 2.4rem;
+  width: 1px;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(216, 142, 134, 0.42);
+}
+
+.paper-composer:focus-within::before {
+  filter:
+    drop-shadow(0 1px 1px rgba(74, 55, 34, 0.22))
+    drop-shadow(0 9px 14px -3px rgba(74, 55, 34, 0.22))
+    drop-shadow(0 30px 44px -14px rgba(74, 55, 34, 0.3));
 }
 
 .paper-composer textarea {
@@ -222,39 +319,27 @@ body::after {
   padding: .35rem .35rem 0;
   font-family: var(--font-serif-cn);
   font-size: 16px;
+  line-height: 28px;
 }
 
-.paper-composer textarea::placeholder { color: rgba(102, 91, 80, 0.75); }
+.paper-composer textarea::placeholder { color: rgba(102, 91, 80, 0.72); }
 
-.paper-composer::after {
+/* 记录卡：左侧一条手撕彩纸边（不是 border，是贴上去的一条纸） */
+.paper-entry-card::before {
   content: "";
   position: absolute;
-  right: 1.25rem;
-  top: 0.9rem;
-  width: 4rem;
-  height: 2.6rem;
+  left: -2px;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  width: 4px;
+  z-index: 0;
   pointer-events: none;
-  background: url("/art-kit/assets/handdrawn/star-doodle.svg") center / contain no-repeat;
-  opacity: 0.2;
-  transform: rotate(8deg);
-}
-
-.paper-entry-card {
-  border-left: 3px solid rgba(110, 139, 114, 0.36);
-  border-radius: 10px 7px 12px 8px;
-  background:
-    linear-gradient(100deg, rgba(255,255,255,.42), transparent 30%),
-    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 360px 360px,
-    var(--color-paper-card);
-}
-
-.paper-drop {
-  background-image:
-    linear-gradient(rgba(255,250,240,.22), rgba(255,250,240,.22)),
-    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png");
-  background-size: auto, 380px 380px;
-  background-blend-mode: normal, multiply;
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(110, 139, 114, 0.85), rgba(110, 139, 114, 0.45));
+  -webkit-mask-image: var(--deckle-3);
+  mask-image: var(--deckle-3);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  filter: drop-shadow(1px 0 1px rgba(74, 55, 34, 0.25));
 }
 
 /* 侧栏文字可读性：浅纹理底上直接用墨色高对比，禁止透明白描边 */
@@ -263,20 +348,17 @@ body::after {
 
 .paper-sidebar a:not([aria-current="page"]) { text-shadow: none; }
 
+/* 日期签：贴在时间线上的索引标签，一端斜切 + 和纸胶带压住 */
 .paper-date-tab {
   position: relative;
-  background: var(--color-paper-deep);
-}
-
-.paper-date-tab::after {
-  content: "";
-  position: absolute;
-  left: 0.35rem;
-  right: 0.35rem;
-  bottom: -0.28rem;
-  height: 0.28rem;
-  background: rgba(76, 58, 39, 0.12);
-  clip-path: polygon(0 0, 100% 18%, 94% 100%, 56% 70%, 24% 100%);
+  background-color: #e3c893;
+  background-image:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.55), transparent 42%),
+    var(--paper-fiber);
+  background-size: auto, 200px 200px;
+  background-blend-mode: normal, multiply;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%);
+  filter: drop-shadow(0 1px 1px rgba(74, 55, 34, 0.28)) drop-shadow(0 5px 8px -2px rgba(74, 55, 34, 0.22));
 }
 
 .paper-login-stage {
@@ -321,8 +403,8 @@ body::after {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
+  background-image: var(--paper-fiber);
+  background-size: 320px 320px;
   opacity: var(--paper-noise-opacity);
   mix-blend-mode: multiply;
   border-radius: inherit;
@@ -339,26 +421,18 @@ body::after {
   mix-blend-mode: multiply;
 }
 
-/* ───────────────────────── 撕边：4 种预生成变体循环（禁止逐卡片随机路径） ───────────────────────── */
+/* ───────────────────────── 撕边：旧 clip-path 变体 → 毛边遮罩别名 ─────────────────────────
+   clip-path 打在卡片本身上会连同胶带、回形针一起裁掉，所以撕边下沉到
+   .paper-sheet（见 paper-craft.css）。这里只保留 4 个种子的映射关系，
+   老代码里的 torn-N 仍然有效，但作用变成「选择哪一张毛边纸」。 */
 
-.torn-1 {
-  clip-path: polygon(0 2%, 4% 0, 22% 1.5%, 38% 0.4%, 61% 1.8%, 79% 0.3%, 96% 1.4%, 100% 0.6%, 99.4% 34%, 100% 68%, 99.2% 99%, 88% 100%, 66% 98.8%, 41% 100%, 18% 98.6%, 2% 99.6%, 0.4% 72%, 0 38%);
-}
-.torn-2 {
-  clip-path: polygon(0.6% 0, 18% 1.2%, 44% 0.2%, 72% 1.6%, 92% 0.4%, 100% 1.8%, 99.6% 41%, 100% 79%, 99% 100%, 82% 98.8%, 55% 100%, 27% 98.6%, 1% 99.8%, 0 62%, 0.8% 27%);
-}
-.torn-3 {
-  clip-path: polygon(0 1.4%, 27% 0, 53% 1.6%, 81% 0.2%, 100% 1%, 99.8% 47%, 100% 88%, 98.8% 100%, 76% 98.6%, 48% 100%, 21% 98.4%, 0 99.4%, 0.6% 55%, 0 19%);
-}
-.torn-4 {
-  clip-path: polygon(0.8% 1.8%, 31% 0.4%, 58% 1.4%, 86% 0, 100% 2%, 99.4% 52%, 100% 92%, 99% 100%, 71% 98.8%, 39% 100%, 12% 98.6%, 0 100%, 0.4% 66%, 1% 24%);
-}
+.torn-1 { --deckle: var(--deckle-1); --deckle-fuzz: var(--deckle-2); }
+.torn-2 { --deckle: var(--deckle-2); --deckle-fuzz: var(--deckle-4); }
+.torn-3 { --deckle: var(--deckle-3); --deckle-fuzz: var(--deckle-1); }
+.torn-4 { --deckle: var(--deckle-4); --deckle-fuzz: var(--deckle-3); }
 
-/* 撕边卡的真实投影：clip-path 会裁掉 box-shadow，撕边卡一律走 drop-shadow，
-   让阴影跟随撕边轮廓而不是矩形框（否则撕边外圈出现矩形阴影破绽） */
-.torn-1, .torn-2, .torn-3, .torn-4 {
-  filter: drop-shadow(0 10px 18px rgba(76, 58, 39, 0.2));
-}
+/* 投影不再挂在卡片容器上：容器要承载溢出纸外的胶带与回形针，
+   一旦加 filter 就会形成新的包含块并把它们一起压暗。阴影由 .paper-sheet 负责。 */
 
 /* ───────────────────────── 瓦楞纸：只在结构层少量出现 ───────────────────────── */
 
@@ -372,9 +446,19 @@ body::after {
   );
 }
 
+/* 旧 .tape 保留为兜底（新代码用 .washi）：半透明和纸 + 撕口遮罩 */
 .tape {
-  background: linear-gradient(180deg, rgba(233, 182, 79, 0.75), rgba(233, 182, 79, 0.55));
-  box-shadow: 0 1px 3px rgba(76, 58, 39, 0.18);
+  background-color: rgba(233, 182, 79, 0.6);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.34) 0 3px, transparent 3px 7px),
+    var(--paper-fiber);
+  background-size: auto, 140px 140px;
+  -webkit-mask-image: var(--tape-edge);
+  mask-image: var(--tape-edge);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 1px 1.5px rgba(74, 55, 34, 0.3));
 }
 
 /* 焦点环：必须可见，做成「墨线」样式 */
@@ -397,47 +481,15 @@ body::after {
 
 /* ───────────────────────── 纸片动效（§3.7）：放下 / 抽走 / 上浮 ───────────────────────── */
 
-/* 新纸片入场：从 8px 下方轻轻放下，240ms 内完成 */
-@keyframes paper-drop {
-  from {
-    opacity: 0;
-    transform: translateY(18px) rotate(1.2deg);
-    filter: saturate(0.8);
-  }
-  68% { transform: translateY(-3px) rotate(-0.35deg); }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: saturate(1);
-  }
-}
+/* 新纸片入场：斜着落下再摆正（.paste-down 的别名，保留旧类名的调用点） */
 .paper-drop {
-  animation: paper-drop var(--dur-enter-long, 420ms) var(--ease-spring-soft, var(--ease-paper)) both;
+  animation: paste-down 560ms var(--ease-spring-soft, var(--ease-paper)) backwards;
 }
 
 .paper-stack {
   position: relative;
   isolation: isolate;
 }
-
-.paper-stack::before,
-.paper-stack::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: var(--color-paper-deep);
-  opacity: 0.16;
-  pointer-events: none;
-}
-
-/* 衬纸与卡片同为浅色：衬纸必须先投影，卡片轮廓才分得开 */
-.paper-stack::before {
-  transform: rotate(-0.8deg) translate(-4px, 3px);
-  filter: drop-shadow(0 5px 9px rgba(76, 58, 39, 0.16));
-}
-.paper-stack::after { transform: rotate(0.65deg) translate(4px, -2px); opacity: 0.1; }
 
 /* 图片落在桌面上：scale .96→1 + 轻微角度 */
 @keyframes photo-settle {
@@ -454,7 +506,9 @@ body::after {
   animation: photo-settle 200ms var(--ease-paper) both;
 }
 
-/* AI 生成中：卡片边缘的柔和扫描线循环（1.5s），禁止大面积闪烁 */
+/* AI 生成中：卡片边缘的柔和扫描线循环（1.75s），禁止大面积闪烁。
+   注意：扫描层必须自成一个 overflow:hidden 的子元素 —— 把它挂在卡片容器上，
+   overflow 会把贴在纸沿外的胶带与回形针一起裁掉。 */
 @keyframes ai-scan {
   0% {
     transform: translateX(-100%);
@@ -463,10 +517,23 @@ body::after {
     transform: translateX(100%);
   }
 }
+.ai-scan-layer,
 .ai-scanning {
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
 }
+/* 扫描层只做覆盖，不参与布局；带它的卡本身仍是 .paper-piece（relative + isolate） */
+.ai-scanning-wrap {
+  isolation: isolate;
+}
+/* 扫描线要盖在文字之上才读得出「正在被处理」，否则会被内容层完全遮住 */
+.ai-scan-layer {
+  z-index: 5;
+}
+.ai-scan-layer::before,
 .ai-scanning::before {
   content: "";
   position: absolute;
@@ -475,11 +542,25 @@ body::after {
   background: linear-gradient(
     105deg,
     transparent 35%,
-    rgba(110, 139, 114, 0.14) 50%,
+    rgba(110, 139, 114, 0.16) 50%,
     transparent 65%
   );
   animation: ai-scan 1.75s ease-in-out infinite;
   mix-blend-mode: multiply;
+}
+
+/* 纸面被 AI「扫过」时，纸本身也轻微亮一下，扫描线才有承载物 */
+.ai-scan-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 50%, rgba(255, 255, 255, 0.22), transparent 70%);
+  animation: ai-breathe 1.75s ease-in-out infinite;
+}
+@keyframes ai-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
 }
 
 .crayon-underline {
@@ -542,14 +623,18 @@ html[data-simple="true"] .paper-hills {
   background-image: none;
 }
 
-/* ───────────────────────── 移动端底部导航：与侧栏同语言的瓦楞纸底 ───────────────────────── */
+/* ───────────────────────── 移动端底部导航：牛皮纸板 ───────────────────────── */
 
-/* 旧写法 corrugated + paper-hills 双类的 background-image 会互相整层覆盖，
-   统一收敛到这里：亮纸底 + 纹理/山峦压到 30% —— 纹理全量铺满会把底色压成深褐，
-   11px 灰字在上面完全看不清；导航首先是可用性，氛围感让位 */
 .paper-mobile-nav {
-  background: var(--color-paper-card);
-  box-shadow: 0 -6px 18px rgba(76, 58, 39, 0.12);
+  background-color: #f4ead7;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 30%),
+    var(--paper-fiber);
+  background-size: auto, 260px 260px;
+  background-blend-mode: normal, multiply;
+  box-shadow:
+    0 -1px 0 rgba(74, 55, 34, 0.18),
+    0 -8px 22px -6px rgba(74, 55, 34, 0.26);
 }
 
 .paper-mobile-nav::before {
@@ -557,10 +642,8 @@ html[data-simple="true"] .paper-hills {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    url("/art-kit/assets/papercut/hills.svg") center bottom / 220% auto no-repeat,
-    url("/art-kit/assets/texture/corrugated.svg") center / 240px 240px;
-  opacity: 0.3;
+  background: url("/art-kit/assets/papercut/hills.svg") center bottom / 220% auto no-repeat;
+  opacity: 0.22;
 }
 
 html[data-simple="true"] .paper-mobile-nav {
@@ -588,10 +671,21 @@ html[data-simple="true"] body::after,
 html[data-simple="true"] .paper-app-shell::before,
 html[data-simple="true"] .paper-main-stage::before,
 html[data-simple="true"] .paper-main-stage::after,
-html[data-simple="true"] .paper-scene-note,
-html[data-simple="true"] .paper-stack::before,
-html[data-simple="true"] .paper-stack::after {
+html[data-simple="true"] .paper-sidebar::before,
+html[data-simple="true"] .paper-sidebar::after,
+html[data-simple="true"] .paper-entry-card::before,
+html[data-simple="true"] .paper-scene-note {
   display: none;
+}
+
+html[data-simple="true"] .paper-composer::before {
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image: none;
+  background-color: var(--color-paper-card);
+  filter: none;
+  border: 1px solid rgba(74, 55, 34, 0.14);
+  border-radius: 8px;
 }
 
 html[data-simple="true"] body {

@@ -16,7 +16,7 @@ export default async function SearchPage() {
   return (
     <div>
       <h1 className="mb-4 font-(--font-serif-cn) text-lg">搜索回忆</h1>
-      <Suspense fallback={<div className="h-40 animate-pulse rounded-(--radius-card) bg-paper-card/70" />}>
+      <Suspense fallback={<div className="paper-piece deckle-2"><span aria-hidden className="paper-sheet" /><div className="h-40" /></div>}>
         <SearchClient timezone={ctx.timezone} today={today(ctx.timezone)} />
       </Suspense>
     </div>

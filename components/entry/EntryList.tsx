@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { EntryCard } from "./EntryCard";
+import { WashiTape } from "@/components/paper/PaperCard";
 import { useEntries, type EntriesPage, type EntryFilters } from "@/lib/hooks/useEntries";
 import { formatChineseDate, relativeDayLabel } from "@/lib/utils/date";
 import type { EntryView } from "@/lib/entry/entry.schema";
@@ -107,7 +108,10 @@ export function EntryList({
     return (
       <div className="space-y-3" aria-busy>
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-28 animate-pulse rounded-(--radius-card) bg-paper-card/70" />
+          <div key={i} className="paper-piece deckle-3" style={{ rotate: `${(i - 1) * 0.28}deg` }}>
+            <span aria-hidden className="paper-sheet" />
+            <div className="h-28 animate-pulse" />
+          </div>
         ))}
       </div>
     );
@@ -115,9 +119,10 @@ export function EntryList({
 
   if (query.isError) {
     return (
-      <p className="rounded-(--radius-card) bg-rose/15 px-3 py-2 text-sm text-ink">
-        加载失败：{(query.error as Error).message}
-        <button type="button" className="paper-focus ml-2 underline" onClick={() => void query.refetch()}>
+      <p className="paper-piece deckle-1 px-3 py-2 text-sm text-ink">
+        <span aria-hidden className="paper-sheet" style={{ "--sheet-color": "#f0d5d0" } as React.CSSProperties} />
+        <span className="relative">加载失败：{(query.error as Error).message}</span>
+        <button type="button" className="paper-focus relative ml-2 underline" onClick={() => void query.refetch()}>
           重试
         </button>
       </p>
@@ -149,21 +154,28 @@ export function EntryList({
               key={row.key}
               data-index={item.index}
               ref={virtualizer.measureElement}
-              className="absolute left-0 top-0 w-full"
+              /* 注意：虚拟行的位置靠内联 transform 定位，这里不能再加 transform 动画
+                 （CSS 动画优先级高于内联样式，会让整列行塌到 y=0）——只用 opacity 淡入 */
+              className="slip-in absolute left-0 top-0 w-full"
               style={{ transform: `translateY(${item.start - virtualizer.options.scrollMargin}px)` }}
             >
               {row.kind === "date" ? (
-                /* 日期分隔：日期标签做成一张斜贴的小纸签 */
-                <h2 className="flex items-center gap-2.5 px-1 pb-2 pt-5">
-                  <span className="paper-date-tab relative inline-block -rotate-1 rounded-l-[6px] rounded-r-[3px] px-2.5 py-1 font-(--font-serif-cn) text-sm text-ink shadow-[0_2px_5px_rgba(76,58,39,0.18)]">
-                    {relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}
+                /* 日期分隔：一张斜贴的索引标签，被一条和纸胶带压住 */
+                <h2 className="flex items-center gap-2.5 px-1 pb-2.5 pt-4">
+                  <span className="relative inline-flex items-center">
+                    <span className="paper-date-tab relative -rotate-[1.4deg] px-2.5 py-1 pr-3.5 font-(--font-serif-cn) text-sm text-ink">
+                      {relativeDayLabel(row.date, today) ?? formatChineseDate(row.date)}
+                    </span>
+                    <WashiTape seed={row.date} className="-left-1 -top-1.5 h-[0.85rem] w-[2.6rem] opacity-70" />
                   </span>
                   {relativeDayLabel(row.date, today) ? (
                     <span className="hand-note text-xs text-ink-muted">{row.date}</span>
                   ) : null}
+                  <span aria-hidden className="crayon-rule ml-1 flex-1" />
                 </h2>
               ) : (
-                <div className="pb-3.5">
+                /* 密集贴叠：奇数行靠左、偶数行右缩一档 —— 纸上手账本来就是歪的 */
+                <div className={["pb-3", item.index % 2 === 0 ? "pr-2.5" : "pl-2.5"].join(" ")}>
                   <EntryCard entry={row.entry} timezone={timezone} />
                 </div>
               )}

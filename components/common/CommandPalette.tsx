@@ -57,7 +57,9 @@ export function CommandPalette() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/30" />
-        <Dialog.Content className="paper-noise fixed left-1/2 top-[12vh] z-50 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 rounded-(--radius-card) bg-paper-card p-3 shadow-(--shadow-paper-hover)">
+        <Dialog.Content className="paper-piece deckle-2 fixed left-1/2 top-[12vh] z-50 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2">
+          <span aria-hidden className="paper-sheet" />
+          <div className="p-3">
           <Dialog.Title className="sr-only">命令面板</Dialog.Title>
           <input
             autoFocus
@@ -118,6 +120,7 @@ export function CommandPalette() {
                 ))}
               </ul>
             </section>
+          </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

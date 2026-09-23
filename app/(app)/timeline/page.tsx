@@ -56,13 +56,24 @@ export default async function TimelinePage() {
     <PageShell aside={aside}>
       <div className="space-y-5">
         <header className="paper-page-heading flex flex-wrap items-end justify-between gap-4 px-2 pb-1 pt-1">
-          <div>
+          <div className="relative">
             <p className="hand-note text-xs tracking-wide text-ink-muted">A Brighter Day · One Page at a Time</p>
-            <h1 className="mt-1.5 font-(--font-serif-cn) text-3xl tracking-[0.08em] text-ink sm:text-4xl">
+            <h1 className="relative mt-2 inline-block font-(--font-serif-cn) text-3xl tracking-[0.08em] text-ink sm:text-4xl">
               {formatChineseDate(todayStr)}
+              {/* 标题底衬：一条蜡笔划痕，像写完顺手勾了一道 */}
+              <span
+                aria-hidden
+                className="absolute -bottom-1 left-0 right-0 h-[0.55em] opacity-55"
+                style={{
+                  backgroundImage: "url(/art-kit/assets/crayon/underline.svg)",
+                  backgroundSize: "100% 100%",
+                  backgroundRepeat: "no-repeat",
+                  transform: "rotate(-0.8deg)",
+                }}
+              />
             </h1>
           </div>
-          <div className="paper-weather-note hand-note rotate-2 rounded-[4px] bg-sun/25 px-3.5 py-2 text-[13px] text-ink shadow-[0_3px_8px_rgba(76,58,39,.12)]">
+          <div className="paper-weather-note hand-note sticky-note -rotate-[1.6deg] px-3.5 py-2.5 text-[13px] text-ink">
             ☀ 今天也要好好生活
           </div>
         </header>

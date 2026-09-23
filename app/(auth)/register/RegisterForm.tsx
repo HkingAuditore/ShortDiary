@@ -49,20 +49,46 @@ export function RegisterForm() {
 
   return (
     <div className="relative w-full max-w-sm">
-      {/* 三层叠纸背景：与登录页同一套视觉语言 */}
-      <span aria-hidden className="absolute -left-5 -top-6 h-full w-full rotate-[-3deg] rounded-[6px] bg-sun/40 shadow-(--shadow-paper)" />
-      <span aria-hidden className="absolute -left-2.5 -top-3 h-full w-full rotate-[2deg] rounded-[6px] bg-rose/35 shadow-(--shadow-paper)" />
+      {/* 三层叠纸背景：与登录页同一套视觉语言（毛边遮罩而非圆角色块） */}
+      <span
+        aria-hidden
+        className="absolute -left-6 -top-7 h-full w-full"
+        style={{
+          background: "linear-gradient(150deg, #e9b64f, #d9a23e)",
+          WebkitMaskImage: "var(--deckle-3)",
+          maskImage: "var(--deckle-3)",
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          rotate: "-3.4deg",
+          opacity: 0.62,
+          filter: "drop-shadow(0 4px 8px rgba(74,55,34,.2))",
+        }}
+      />
+      <span
+        aria-hidden
+        className="absolute -left-3 -top-3.5 h-full w-full"
+        style={{
+          background: "linear-gradient(150deg, #e4aca5, #d88e86)",
+          WebkitMaskImage: "var(--deckle-1)",
+          maskImage: "var(--deckle-1)",
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          rotate: "2.2deg",
+          opacity: 0.55,
+          filter: "drop-shadow(0 4px 7px rgba(74,55,34,.18))",
+        }}
+      />
 
-      <PaperCard seed="register" className="relative p-7">
+      <PaperCard seed="register" className="relative px-7 py-7">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className="relative inline-flex h-10 w-10 items-center justify-center">
             <span className="absolute inset-0 rotate-[6deg] rounded-[4px] bg-sun/70" />
             <span className="absolute inset-0 -rotate-[5deg] rounded-[4px] bg-rose/70" />
-            <span className="relative flex h-8 w-8 items-center justify-center rounded-[4px] bg-paper-strong text-lg shadow-[0_2px_6px_rgba(76,58,39,0.25)] font-(--font-serif-cn)">
+            <span className="relative flex h-8 w-8 items-center justify-center rounded-[4px] bg-paper-strong text-lg shadow-[0_1px_1px_rgba(74,55,34,.28),0_3px_5px_-1px_rgba(74,55,34,.24)] font-(--font-serif-cn)">
               剪
             </span>
           </span>
-          <h1 className="font-(--font-serif-cn) text-xl tracking-wide">开启新的一页</h1>
+          <h1 className="font-(--font-serif-cn) text-xl tracking-[0.06em]">开启新的一页</h1>
         </div>
         <HandNote className="mt-2 block">凭邀请码领取你的抽屉，写下的每页都只属于你。</HandNote>
 

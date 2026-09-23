@@ -2,8 +2,9 @@ import { tornClass, HandNote } from "@/components/paper/PaperCard";
 
 /**
  * Tab 切换骨架屏（路由 loading.tsx 统一入口）。
- * 材质上刻意比真卡片「素」：无噪点、无胶带，只保留撕边轮廓和缓慢呼吸，
- * 让用户读出「内容在路上」而不是「页面坏了」。脉冲错峰形成轻微涟漪。
+ * 骨架必须和真卡片同构（同一套毛边、同一套投影、同样的内部间距），
+ * 否则内容到达时会「跳一下」——那比多等 200ms 更伤。骨架只是少了文字与胶带。
+ * 脉冲错峰形成轻微涟漪。
  */
 export type TabLoadingVariant = "compose" | "list" | "grid" | "photos" | "panel";
 
@@ -30,28 +31,26 @@ export function TabLoading({ label, variant = "list" }: { label?: string; varian
   );
 }
 
-/** 空白纸卡：撕边 + 呼吸，日期签位置与真实条目一致（§3.10.2） */
-function SkeletonCard({ seed = 0 }: { seed?: number }) {
+/** 空白纸卡：与 EntryCard 同构（毛边纸张 + 时间行 + 两行正文占位） */
+function SkeletonCard({ seed = 0 }: { seed?: number | string }) {
   return (
-    <div
-      aria-hidden
-      className={`paper-drop relative bg-paper-card/90 shadow-(--shadow-paper) ${tornClass(seed)}`}
-    >
+    <div aria-hidden className={`paper-piece paper-drop ${tornClass(seed)}`} style={{ rotate: `${((Number(seed) % 5) - 2) * 0.28}deg` }}>
+      <span aria-hidden className="paper-sheet" />
       <div className="flex items-baseline gap-3 px-4 pt-3.5">
         <div
-          className="h-5 w-16 animate-pulse rounded-l-[6px] rounded-r-[3px] bg-ink/10"
-          style={{ animationDelay: `${seed * 90}ms` }}
+          className="h-3 w-14 animate-pulse rounded-[2px] bg-ink/10"
+          style={{ animationDelay: `${Number(seed) * 90}ms` }}
         />
-        <div className="h-3 w-10 animate-pulse rounded-[2px] bg-ink/5" style={{ animationDelay: `${seed * 90 + 120}ms` }} />
+        <div className="h-3 w-10 animate-pulse rounded-[2px] bg-ink/5" style={{ animationDelay: `${Number(seed) * 90 + 120}ms` }} />
       </div>
       <div className="space-y-2 px-4 pb-4 pt-3">
         <div
           className="h-3 w-[92%] animate-pulse rounded-[2px] bg-ink/10"
-          style={{ animationDelay: `${seed * 90 + 60}ms` }}
+          style={{ animationDelay: `${Number(seed) * 90 + 60}ms` }}
         />
         <div
           className="h-3 w-[74%] animate-pulse rounded-[2px] bg-ink/8"
-          style={{ animationDelay: `${seed * 90 + 180}ms` }}
+          style={{ animationDelay: `${Number(seed) * 90 + 180}ms` }}
         />
       </div>
     </div>
@@ -61,10 +60,10 @@ function SkeletonCard({ seed = 0 }: { seed?: number }) {
 /** 时间线顶部的记录条占位 */
 function ComposerSkeleton() {
   return (
-    <div
-      aria-hidden
-      className="paper-drop relative h-24 animate-pulse rounded-(--radius-card) bg-paper-strong/80 shadow-(--shadow-paper)"
-    />
+    <div aria-hidden className="paper-piece paper-drop deckle-2">
+      <span aria-hidden className="paper-sheet" style={{ "--sheet-color": "#fdfaf1" } as React.CSSProperties} />
+      <div className="h-24 animate-pulse rounded-[2px] bg-transparent" />
+    </div>
   );
 }
 
@@ -83,34 +82,34 @@ function CalendarSkeleton() {
   );
 }
 
-/** 拍立得墙：微角度 + 错峰 */
+/** 拍立得墙：微角度 + 错峰，与 PolaroidPhoto 同构 */
 function PhotosSkeleton() {
   return (
-    <div aria-hidden className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <div aria-hidden className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
       {Array.from({ length: 8 }, (_, i) => (
         <div
           key={i}
-          className="aspect-[4/5] animate-pulse bg-paper-strong/80 p-[6px] shadow-(--shadow-paper) ring-1 ring-ink/10"
-          style={{ transform: `rotate(${((i % 5) - 2) * 0.5}deg)`, animationDelay: `${i * 70}ms` }}
+          className="polaroid aspect-[4/5] p-[7px]"
+          style={{ rotate: `${((i % 5) - 2) * 0.5}deg`, animationDelay: `${i * 70}ms` }}
         />
       ))}
     </div>
   );
 }
 
-/** 设置面板：行式表单 */
+/** 设置面板：与 SettingsPanel 的纸卡同构 */
 function PanelSkeleton() {
   return (
-    <div
-      aria-hidden
-      className="paper-drop space-y-4 bg-paper-card px-5 py-4 shadow-(--shadow-paper)"
-    >
-      {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="flex items-center justify-between gap-4">
-          <div className="h-3.5 w-24 animate-pulse rounded bg-ink/10" style={{ animationDelay: `${i * 80}ms` }} />
-          <div className="h-8 w-40 animate-pulse rounded bg-ink/5" style={{ animationDelay: `${i * 80 + 100}ms` }} />
-        </div>
-      ))}
+    <div aria-hidden className="paper-piece paper-drop deckle-4">
+      <span aria-hidden className="paper-sheet" />
+      <div className="space-y-4 px-5 py-4">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="flex items-center justify-between gap-4">
+            <div className="h-3.5 w-24 animate-pulse rounded bg-ink/10" style={{ animationDelay: `${i * 80}ms` }} />
+            <div className="h-8 w-40 animate-pulse rounded bg-ink/5" style={{ animationDelay: `${i * 80 + 100}ms` }} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

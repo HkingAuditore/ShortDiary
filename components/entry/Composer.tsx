@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { apiSend, uploadWithTicket, type UploadTicketLike } from "@/lib/api/client";
 import { DEFAULT_ENCODE, processImage, type EncodedImage } from "@/lib/media/process";
-import { PaperButton, TagChip, PolaroidPhoto } from "@/components/paper/PaperCard";
+import { PaperButton, TagChip, PolaroidPhoto, WashiTape } from "@/components/paper/PaperCard";
 import { useToast } from "@/components/common/Toast";
 import { queryKeys } from "@/lib/query/keys";
 import type { AssetDescriptor, EntryView } from "@/lib/entry/entry.schema";
@@ -218,14 +218,14 @@ export function Composer({ timezone, today }: ComposerProps) {
         void addFiles(e.dataTransfer.files);
       }}
       className={[
-        "paper-composer paper-noise drop-spring relative rounded-(--radius-card) p-4 transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
+        "paper-composer drop-spring relative p-4 transition-[filter,transform] duration-(--dur-normal) ease-(--ease-spring-soft)",
         // 发送瞬间纸条轻压一下（§3.7「发送记录」）
-        create.isPending ? "translate-y-[2px] shadow-none" : "",
+        create.isPending ? "translate-y-[2px] brightness-[0.99]" : "",
         dragging ? "ring-2 ring-sage ring-offset-2 ring-offset-paper-bg" : "",
       ].join(" ")}
     >
-      {/* 顶部一条窄窄的胶带：标记「这是正在写的纸条」 */}
-      <span aria-hidden className="tape tape-stick absolute -top-2 left-8 h-3.5 w-16 rounded-[1px] opacity-70" />
+      {/* 顶部一条窄胶带：标记「这是正在写的纸条」 */}
+      <WashiTape seed="composer" className="tape-stick -top-2.5 left-7 h-[1rem] w-[4.2rem]" />
 
       <textarea
         ref={textRef}
@@ -248,13 +248,14 @@ export function Composer({ timezone, today }: ComposerProps) {
         placeholder="刚刚发生了什么？像发消息一样写下来……（⌘/Ctrl + Enter 发送）"
         aria-label="记录正文"
         maxLength={20000}
-        className="paper-focus w-full resize-none bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink-muted/85"
+        style={{ paddingLeft: "2.4rem" }}
+        className="paper-focus w-full resize-none bg-transparent font-(--font-serif-cn) text-[16px] leading-[28px] text-ink outline-none placeholder:text-ink-muted/80"
       />
 
       {images.length > 0 ? (
-        <ul className="mt-3 flex flex-wrap gap-3">
-          {images.map((img) => (
-            <li key={img.id} className="relative">
+        <ul className="mt-3 flex flex-wrap items-start gap-x-1 gap-y-3">
+          {images.map((img, i) => (
+            <li key={img.id} className="relative" style={{ zIndex: images.length - i }}>
               <PolaroidPhoto
                 src={img.previewUrl}
                 alt={img.name}
@@ -262,7 +263,12 @@ export function Composer({ timezone, today }: ComposerProps) {
                 height={96}
                 seed={img.id}
                 caption={img.status === "error" ? "处理失败" : undefined}
-                className={["w-24", img.status === "processing" ? "opacity-60" : "", img.status === "error" ? "opacity-40 grayscale" : ""].join(" ")}
+                className={[
+                  "w-24",
+                  i > 0 ? "-ml-3" : "",
+                  img.status === "processing" ? "opacity-60" : "",
+                  img.status === "error" ? "opacity-40 grayscale" : "",
+                ].join(" ")}
               >
                 {img.status === "processing" ? (
                   <span className="scan-line absolute bottom-2 left-2 right-2 h-0.5 animate-pulse rounded-full" />
@@ -318,7 +324,7 @@ export function Composer({ timezone, today }: ComposerProps) {
       ) : null}
 
       {tags.length > 0 ? (
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5 pl-[2.4rem]">
           {tags.map((t) => (
             <TagChip key={t} token="sage" onClick={() => setTags((prev) => prev.filter((x) => x !== t))}>
               #{t} ×
@@ -327,7 +333,7 @@ export function Composer({ timezone, today }: ComposerProps) {
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="mt-3.5 flex items-center justify-between gap-2 pl-[2.4rem]">
         <div className="flex items-center gap-1.5">
           <input
             ref={fileRef}

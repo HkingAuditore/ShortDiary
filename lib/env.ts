@@ -63,6 +63,44 @@ const schema = z.object({
 
   /** external 模式下 tick 端点的触发凭证；不配置则端点拒绝所有请求 */
   JOB_TICK_SECRET: optionalString,
+
+  /**
+   * ---- 内置默认 AI（系统级兜底）----
+   * 密钥只存在于服务端运行时环境变量 / 平台密钥管理中，绝不写入代码或数据库。
+   * 注意：变量名绝不能加 NEXT_PUBLIC_ 前缀，否则会被打进浏览器包。
+   * 未配置 AI_DEFAULT_API_KEY 时内置默认整体停用，用户仍可自建 Provider。
+   */
+  AI_DEFAULT_API_KEY: optionalString,
+  AI_DEFAULT_BASE_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().url().default("https://tokenhub.tencentmaas.com/v1"),
+  ),
+  AI_DEFAULT_MODEL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(1).max(120).default("hy4-preview"),
+  ),
+  /** 可选：视觉模型；不配置则不使用内置默认的 vision 能力 */
+  AI_DEFAULT_VISION_MODEL: optionalString,
+  AI_DEFAULT_NAME: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(1).max(60).default("内置默认模型"),
+  ),
+  /** 厂商不支持 response_format=json_object 时关掉，改为提示词约束 + 正则抽取 */
+  AI_DEFAULT_JSON_MODE: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((v) => v === "true"),
+  ),
+  /** true = 强制所有用户走内置默认（忽略其自建 Provider），适合自建托管/内部部署 */
+  AI_DEFAULT_FORCE: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
+  ),
 });
 
 export type Env = z.infer<typeof schema> & { storageDriver: "cos" | "local" };

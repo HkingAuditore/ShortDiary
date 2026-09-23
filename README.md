@@ -119,6 +119,36 @@ Next 的内联引导脚本会被全部拦截，水合失败，表现为整页空
 - `COS_*` 全部留空即回退本地磁盘存储驱动。
 - `JOB_WORKER_MODE=external` + `JOB_TICK_SECRET=<长随机串>`：无服务器平台的任务模式（见下节）。
 
+### 内置默认 AI（`AI_DEFAULT_*`，可选）
+
+用户没有自建 Provider 时，AI 功能自动回退到服务端配置的「内置默认」，无需每个用户去填 Key。
+
+| 变量 | 说明 |
+| --- | --- |
+| `AI_DEFAULT_API_KEY` | 密钥。**留空即整体停用**，用户仍可自行添加服务商 |
+| `AI_DEFAULT_BASE_URL` | OpenAI 兼容端点，默认 `https://tokenhub.tencentmaas.com/v1` |
+| `AI_DEFAULT_MODEL` | chat 模型，默认 `hy4-preview` |
+| `AI_DEFAULT_VISION_MODEL` | 可选；留空则不提供 vision 能力 |
+| `AI_DEFAULT_NAME` | 设置页展示名 |
+| `AI_DEFAULT_JSON_MODE` | 端点不支持 `response_format=json_object` 时设为 `false` |
+| `AI_DEFAULT_FORCE` | `true` = 忽略用户自建服务商，全部走内置（内部部署场景） |
+
+优先级：**用户自建 Provider（默认/指定） → 内置默认 → 报错引导去设置页**。
+
+**密钥保密红线**（代码要进公共仓库，务必遵守）：
+
+1. 只通过部署平台的**环境变量 / 密钥管理**注入（EdgeOne Pages 环境变量、Docker secrets、
+    K8s Secret、CI 的 encrypted secrets 均可），**不要**写进代码、`Dockerfile` 的 `ARG`/`ENV`
+    字面量、`edgeone.json`，也不要提交任何 `.env*`（`.gitignore` 已忽略 `.env`、`.env.local`）。
+2. 变量名**绝不能加 `NEXT_PUBLIC_` 前缀** —— 加了会被打进浏览器包，等于把密钥公开。
+    内置默认只在服务端读取（`lib/ai/builtin.ts`），设置页接口 `/api/ai/builtin` 只返回
+    脱敏尾号（`sk-****CNU09xO5`）。
+3. 密钥轮换只改环境变量并重启/重新部署，无需清库 —— 它不落数据库，与用户 Provider 的
+    `APP_MASTER_KEY` 信封加密是两套独立机制。
+4. 换厂商/换模型改环境变量即可，无需改代码。
+
+部署后自检：`GET /api/ai/builtin` 看状态，`POST /api/ai/builtin` 发一条短请求验证连通性。
+
 ### 无服务器平台部署（EdgeOne Pages 等）
 
 进程内 `setInterval` 轮询在实例会冻结的无服务器平台上不可靠（EdgeOne Pages Node Functions：

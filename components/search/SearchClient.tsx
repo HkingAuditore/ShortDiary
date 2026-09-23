@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api/client";
 import { EntryList } from "@/components/entry/EntryList";
-import { TagChip } from "@/components/paper/PaperCard";
+import { TagChip, PaperClip } from "@/components/paper/PaperCard";
 
 interface TagItem {
   id: string;
@@ -44,20 +44,24 @@ export function SearchClient({ timezone, today }: { timezone: string; today: str
 
   return (
     <div className="space-y-4">
-      <section className="paper-noise relative rounded-(--radius-card) bg-paper-card p-4 shadow-(--shadow-paper)">
-        <div className="flex items-center gap-2 border-b border-ink/10 pb-2.5">
-          {/* 放大镜用一枚小纸片圆点表达，保持剪纸语言 */}
-          <span aria-hidden className="inline-block h-2.5 w-2.5 -rotate-12 rounded-full bg-sage/80 ring-2 ring-sage/30" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="搜一句话、一个人名、一个地方……"
-            aria-label="搜索关键词"
-            className="paper-focus w-full bg-transparent text-[15px] outline-none placeholder:text-ink-muted/85"
-          />
-        </div>
+      {/* 筛选区 = 一张方格便签：搜索条件写在格子里，和记录纸区分开 */}
+      <section className="paper-piece paper-drop deckle-1">
+        <span aria-hidden className="paper-sheet" style={{ "--sheet-color": "#fbf5e6" } as React.CSSProperties} />
+        <PaperClip seed="search" className="-top-3 left-8 h-[3rem] w-[1.15rem]" />
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-2 border-b border-ink/10 pb-2.5">
+            {/* 放大镜用一枚小纸片圆点表达，保持剪纸语言 */}
+            <span aria-hidden className="inline-block h-2.5 w-2.5 -rotate-12 rounded-full bg-sage/80 ring-2 ring-sage/30" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="搜一句话、一个人名、一个地方……"
+              aria-label="搜索关键词"
+              className="paper-focus w-full bg-transparent font-(--font-serif-cn) text-[15px] outline-none placeholder:text-ink-muted/80"
+            />
+          </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs text-ink-muted">
+          <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs text-ink-muted">
           <label className="flex items-center gap-1">
             从
             <input
@@ -126,6 +130,7 @@ export function SearchClient({ timezone, today }: { timezone: string; today: str
             </div>
           </div>
         ) : null}
+        </div>
       </section>
 
       <EntryList

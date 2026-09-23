@@ -21,13 +21,19 @@ function EntryImages({ assets, seedBase }: { assets: EntryAssetView[]; seedBase:
   if (assets.length === 0) return null;
 
   return (
-    <ul className="mt-3 flex flex-wrap gap-3">
+    /* 照片行做成「散摆在纸上」：负间距让相纸互相压叠，hover 的那张升到最上面 */
+    <ul className="mt-3.5 flex flex-wrap items-start gap-x-1 gap-y-3 pl-1">
       {assets.map((a, i) => {
         const placeholder = blurhashToDataUrl(a.blurhash);
         return (
           <li
             key={a.id}
-            className={assets.length === 1 ? "w-full max-w-xs" : "w-[calc(50%-0.5rem)] max-w-[220px]"}
+            className={[
+              "transition-[transform,z-index] duration-(--dur-normal) ease-(--ease-spring-soft) hover:z-20",
+              assets.length === 1 ? "w-full max-w-[17rem]" : "w-[calc(50%-0.35rem)] max-w-[13.5rem]",
+              i > 0 ? "-ml-2" : "",
+            ].join(" ")}
+            style={{ zIndex: assets.length - i }}
           >
             <PolaroidPhoto
               src={a.url}
@@ -101,10 +107,13 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       id={entry.id}
       seed={entry.id}
       hover
-      className={["paper-entry-card scroll-mt-6 p-4", entry.aiStatus === "pending" ? "ai-scanning" : ""].join(" ")}
+      stack={entry.assets.length > 0}
+      clip={showAi}
+      className={["paper-entry-card scroll-mt-6 px-4 py-3.5", entry.aiStatus === "pending" ? "ai-scanning-wrap" : ""].join(" ")}
     >
+      {entry.aiStatus === "pending" ? <span aria-hidden className="ai-scan-layer" /> : null}
       <header className="flex items-start justify-between gap-2">
-        <time dateTime={entry.occurredAt} className="hand-note text-[13px] text-ink">
+        <time dateTime={entry.occurredAt} className="hand-note text-[13px] tracking-wide text-ink">
           {timeInTimeZone(entry.occurredAt, timezone)}
         </time>
 
@@ -115,8 +124,8 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
             aria-pressed={entry.starred}
             onClick={() => patch.mutate({ starred: !entry.starred })}
             className={[
-              "paper-focus px-1 text-base leading-none transition-transform duration-(--dur-fast) hover:scale-110",
-              entry.starred ? "text-sun" : "text-ink-muted",
+              "paper-focus px-1 text-base leading-none transition-transform duration-(--dur-fast) ease-(--ease-spring) hover:scale-125 hover:-rotate-12",
+              entry.starred ? "star-pop text-sun drop-shadow-[0_1px_1px_rgba(120,86,20,.35)]" : "text-ink-muted",
             ].join(" ")}
           >
             {entry.starred ? "★" : "☆"}
@@ -171,7 +180,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15 }}
-            className="mt-1.5 whitespace-pre-wrap break-words text-[15px] leading-relaxed"
+            className="mt-1.5 whitespace-pre-wrap break-words font-(--font-serif-cn) text-[15.5px] leading-[1.85] tracking-[0.01em]"
           >
             {entry.content}
           </motion.p>
@@ -181,13 +190,17 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       <EntryImages assets={entry.assets} seedBase={entry.id} />
 
       {showAi ? (
-        <div className="mt-3 rounded-l-[6px] rounded-r-[2px] border-l-2 border-sage/50 bg-sage/10 px-2.5 py-2 text-xs leading-relaxed text-ink/90">
-          <HandNote className="mr-1.5 text-[13px] text-sage-dark">AI 附注</HandNote>
-          {ai?.summary ? <p>{ai.summary}</p> : null}
+        /* AI 附注 = 贴在记录下方的一张小便签：底色不同、角度不同，一眼分得清「谁写的」 */
+        <div
+          className="sticky-note relative mt-3.5 -rotate-[0.6deg] px-3 py-2.5 text-xs leading-relaxed text-ink/90"
+          style={{ "--sticky-color": "#e7efe3" } as React.CSSProperties}
+        >
+          <HandNote className="mr-1.5 text-[13px] text-sage">AI 附注</HandNote>
+          {ai?.summary ? <p className="mt-0.5">{ai.summary}</p> : null}
           {ai?.topics?.length ? (
-            <p className="mt-1 flex flex-wrap gap-1 text-ink-muted">
+            <p className="mt-1.5 flex flex-wrap gap-1 text-ink-muted">
               {ai.topics.map((t) => (
-                <span key={t} className="rounded-[2px] bg-sage/15 px-1.5 py-0.5">
+                <span key={t} className="rounded-[2px] bg-sage/18 px-1.5 py-0.5">
                   {t}
                 </span>
               ))}
@@ -197,14 +210,14 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       ) : entry.aiStatus === "pending" ? (
         <p className="mt-3 flex items-center gap-1 text-xs text-ink-muted">
           AI 整理中
-          <span className="ink-dot" />
-          <span className="ink-dot" style={{ animationDelay: "0.2s" }} />
-          <span className="ink-dot" style={{ animationDelay: "0.4s" }} />
+          <span className="ink-dot-2" />
+          <span className="ink-dot-2" />
+          <span className="ink-dot-2" />
         </p>
       ) : null}
 
       {entry.tags.length > 0 ? (
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {entry.tags.map((t) => (
             <TagChip key={t.id} token={t.colorToken || "sage"}>
               #{t.name}

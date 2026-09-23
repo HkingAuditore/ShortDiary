@@ -53,17 +53,30 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           {items.map((item) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 24 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              initial={{ opacity: 0, x: 28, y: -12, rotate: 3 }}
+              animate={{ opacity: 1, x: 0, y: 0, rotate: 0 }}
+              exit={{ opacity: 0, x: 28, rotate: 2 }}
+              transition={{ duration: 0.24, ease: [0.3, 1.2, 0.4, 1] }}
               className={[
-                "paper-noise pointer-events-auto relative rounded-[3px] px-3.5 py-2.5 text-sm shadow-(--shadow-paper)",
-                item.tone === "error" ? "bg-rose text-paper-strong" : item.tone === "success" ? "bg-sage text-paper-strong" : "bg-paper-strong text-ink",
+                "paper-piece pointer-events-auto",
+                item.tone === "error" ? "deckle-1" : item.tone === "success" ? "deckle-2" : "deckle-3",
               ].join(" ")}
               role="status"
             >
-              <div className="flex items-start gap-2">
+              {/* 提示条 = 从抽屉里抽出来的一张纸条：有毛边、有投影 */}
+              <span
+                aria-hidden
+                className="paper-sheet"
+                style={{
+                  "--sheet-color": item.tone === "error" ? "#e2a29a" : item.tone === "success" ? "#c3d3c0" : "#fdf8ec",
+                } as React.CSSProperties}
+              />
+              <div
+                className={[
+                  "flex items-start gap-2 px-3.5 py-2.5 text-sm",
+                  item.tone === "info" ? "text-ink" : "text-ink/95",
+                ].join(" ")}
+              >
                 <span className="flex-1">{item.message}</span>
                 {item.action ? (
                   <button

@@ -36,20 +36,46 @@ export function LoginForm() {
 
   return (
     <div className="relative w-full max-w-sm">
-      {/* 三层叠纸背景：进入应用前先闻到纸味 */}
-      <span aria-hidden className="absolute -left-5 -top-6 h-full w-full rotate-[-3deg] rounded-[6px] bg-sun/40 shadow-(--shadow-paper)" />
-      <span aria-hidden className="absolute -left-2.5 -top-3 h-full w-full rotate-[2deg] rounded-[6px] bg-rose/35 shadow-(--shadow-paper)" />
+      {/* 三层叠纸背景：进入应用前先闻到纸味（毛边遮罩，不是圆角色块） */}
+      <span
+        aria-hidden
+        className="absolute -left-6 -top-7 h-full w-full"
+        style={{
+          background: "linear-gradient(150deg, #e9b64f, #d9a23e)",
+          WebkitMaskImage: "var(--deckle-3)",
+          maskImage: "var(--deckle-3)",
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          rotate: "-3.4deg",
+          opacity: 0.62,
+          filter: "drop-shadow(0 4px 8px rgba(74,55,34,.2))",
+        }}
+      />
+      <span
+        aria-hidden
+        className="absolute -left-3 -top-3.5 h-full w-full"
+        style={{
+          background: "linear-gradient(150deg, #e4aca5, #d88e86)",
+          WebkitMaskImage: "var(--deckle-1)",
+          maskImage: "var(--deckle-1)",
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          rotate: "2.2deg",
+          opacity: 0.55,
+          filter: "drop-shadow(0 4px 7px rgba(74,55,34,.18))",
+        }}
+      />
 
-      <PaperCard seed="login" className="relative p-7">
+      <PaperCard seed="login" className="relative px-7 py-7">
         <div className="flex items-center gap-2.5">
           <span aria-hidden className="relative inline-flex h-10 w-10 items-center justify-center">
             <span className="absolute inset-0 rotate-[6deg] rounded-[4px] bg-sun/70" />
             <span className="absolute inset-0 -rotate-[5deg] rounded-[4px] bg-rose/70" />
-            <span className="relative flex h-8 w-8 items-center justify-center rounded-[4px] bg-paper-strong text-lg shadow-[0_2px_6px_rgba(76,58,39,0.25)] font-(--font-serif-cn)">
+            <span className="relative flex h-8 w-8 items-center justify-center rounded-[4px] bg-paper-strong text-lg shadow-[0_1px_1px_rgba(74,55,34,.28),0_3px_5px_-1px_rgba(74,55,34,.24)] font-(--font-serif-cn)">
               剪
             </span>
           </span>
-          <h1 className="font-(--font-serif-cn) text-xl tracking-wide">剪纸日记</h1>
+          <h1 className="font-(--font-serif-cn) text-xl tracking-[0.06em]">剪纸日记</h1>
         </div>
         <HandNote className="mt-2 block">像发消息一样记下日常，再像手账一样留住它们。</HandNote>
 
@@ -57,7 +83,7 @@ export function LoginForm() {
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-ink-muted">账号</span>
             <input
-              className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+              className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(74,55,34,.12),inset_0_-1px_0_rgba(255,255,255,.7)] outline-none transition-[border-color,box-shadow] duration-(--dur-fast) focus:border-sage/60"
               name="loginId"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
@@ -69,7 +95,7 @@ export function LoginForm() {
             <span className="text-ink-muted">密码</span>
             <input
               type="password"
-              className="paper-focus rounded-[4px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(76,58,39,0.06)] outline-none transition-[border-color] duration-(--dur-fast) focus:border-sage/60"
+              className="paper-focus rounded-[3px] border border-ink/15 bg-paper-strong px-3 py-2 shadow-[inset_0_1px_2px_rgba(74,55,34,.12),inset_0_-1px_0_rgba(255,255,255,.7)] outline-none transition-[border-color,box-shadow] duration-(--dur-fast) focus:border-sage/60"
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -1,0 +1,484 @@
+/**
+ * Paper Craft —— 手账质感层
+ * ------------------------------------------------------------------
+ * 解决旧实现的三个根本问题：
+ *  1. 纸只是一个色块：没有纤维、没有厚度、没有毛边 → 这里用「毛边遮罩 + 纤维底纹 +
+ *     受光渐变 + 轮廓跟随投影」四层叠出一张真正的纸；
+ *  2. 光影是一条固定 box-shadow：改为「接触影 + 抬起影 + 环境影」三段式，
+ *     并统一光源在左上 148°，所有高光/暗角方向一致；
+ *  3. 没有拼贴：补齐和纸胶带、回形针、订书钉、打孔、缝线、咖啡渍、内页格线。
+ *
+ * 性能约定：遮罩与纹理都是 data-uri SVG（浏览器按元素尺寸栅格化一次），
+ * 列表虚拟化后同屏纸片 ≤ 12 张，drop-shadow 链控制在 3 段以内。
+ * simpleMode（html[data-simple="true"]）关闭遮罩与纹理，只留纯色与基本阴影。
+ */
+
+/* ═════════════════ 1. 纸张原料：纤维 / 颗粒 / 云斑 ═════════════════ */
+
+:root {
+  /* 手工纸纤维：细颗粒 + 长向纤维丝 + 大尺度云斑（纸浆厚薄不匀） */
+  --paper-fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.11' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23g)' opacity='0.26'/%3E%3Crect width='320' height='320' filter='url(%23f)' opacity='0.17'/%3E%3Crect width='320' height='320' filter='url(%23c)' opacity='0.13'/%3E%3C/svg%3E");
+
+  /* 牛皮纸桌面：更粗的麻纤维，方向偏水平 */
+  --kraft-fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.003 0.16' numOctaves='5' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='360' height='360' filter='url(%23g)' opacity='0.3'/%3E%3Crect width='360' height='360' filter='url(%23f)' opacity='0.22'/%3E%3C/svg%3E");
+
+  /* 光源统一：左上 148°，所有纸面高光与暗角共用这组值 */
+  --lit-highlight: rgba(255, 253, 246, 0.82);
+  --lit-shade: rgba(122, 92, 56, 0.17);
+
+  /* 三段式阴影：接触（硬、贴桌）/ 抬起（中）/ 环境（大而散） */
+  --sh-contact: 0 1px 1px rgba(74, 55, 34, 0.26);
+  --sh-lift: 0 5px 8px -2px rgba(74, 55, 34, 0.18);
+  --sh-ambient: 0 16px 26px -10px rgba(74, 55, 34, 0.22);
+}
+
+/* ═════════════════ 2. 毛边遮罩：四个种子变体 ═════════════════ */
+/* feDisplacementMap 把矩形边缘打散成纤维状撕口；scale 越大撕得越狠。
+   低频分量给出大起伏（撕纸的走向），高频分量给出纸纤维的毛刺。 */
+
+:root {
+  --deckle-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cfilter id='d' x='-8%25' y='-8%25' width='116%25' height='116%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.007 0.04' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='13' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='7' y='7' width='586' height='386' rx='2' fill='%23fff' filter='url(%23d)'/%3E%3C/svg%3E");
+  --deckle-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cfilter id='d' x='-8%25' y='-8%25' width='116%25' height='116%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.045' numOctaves='5' seed='23' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='15' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='8' y='8' width='584' height='384' rx='2' fill='%23fff' filter='url(%23d)'/%3E%3C/svg%3E");
+  --deckle-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cfilter id='d' x='-8%25' y='-8%25' width='116%25' height='116%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.035' numOctaves='5' seed='41' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='12' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='7' y='7' width='586' height='386' rx='2' fill='%23fff' filter='url(%23d)'/%3E%3C/svg%3E");
+  --deckle-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cfilter id='d' x='-8%25' y='-8%25' width='116%25' height='116%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.05' numOctaves='5' seed='59' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='16' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='9' y='9' width='582' height='382' rx='2' fill='%23fff' filter='url(%23d)'/%3E%3C/svg%3E");
+
+  /* 胶带遮罩：两端撕口明显，长边只有轻微起伏 */
+  --tape-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='72' viewBox='0 0 240 72' preserveAspectRatio='none'%3E%3Cfilter id='t' x='-6%25' y='-10%25' width='112%25' height='120%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.16 0.02' numOctaves='4' seed='5' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='9' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3Crect x='5' y='4' width='230' height='64' fill='%23fff' filter='url(%23t)'/%3E%3C/svg%3E");
+}
+
+/* 白毛边用的遮罩与主遮罩错开一个种子：同一张遮罩会把白边精确套在纸沿上，看不出纤维 */
+.deckle-1 { --deckle: var(--deckle-1); --deckle-fuzz: var(--deckle-2); }
+.deckle-2 { --deckle: var(--deckle-2); --deckle-fuzz: var(--deckle-4); }
+.deckle-3 { --deckle: var(--deckle-3); --deckle-fuzz: var(--deckle-1); }
+.deckle-4 { --deckle: var(--deckle-4); --deckle-fuzz: var(--deckle-3); }
+
+/* ═════════════════ 3. 纸片本体：paper-piece / paper-sheet ═════════════════ */
+/*
+ * 结构（为什么要分两层）：
+ *   .paper-piece  —— 不带遮罩的容器，承载正文与溢出到纸外的装饰（胶带、回形针）；
+ *   .paper-sheet  —— 绝对定位在 -1 层的「纸」，只有它吃毛边遮罩。
+ * 旧实现把 clip-path 打在卡片本身上，胶带一旦超出边界就被裁掉，
+ * 所以以前的胶带只能贴在纸里面 —— 那就不叫贴胶带了。
+ */
+
+.paper-piece {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 2px;
+  background-color: var(--sheet-color, #fbf6ea);
+  background-image:
+    /* ① 顶边高光：纸的上沿总是最亮的一条 */
+    linear-gradient(180deg, var(--lit-highlight) 0, transparent 3px),
+    /* ② 底边厚度：纸压在桌面上，下沿有一条压深 */
+    linear-gradient(0deg, var(--lit-shade) 0, transparent 5px),
+    /* ③ 主受光：左上打光，向右下衰减 */
+    linear-gradient(148deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 56%),
+    /* ④ 右下暗角：纸面微微隆起的暗侧 */
+    radial-gradient(135% 120% at 96% 106%, rgba(122, 92, 56, 0.15), transparent 58%),
+    /* ⑤ 纸浆纤维 */
+    var(--paper-fiber);
+  background-size: auto, auto, auto, auto, 320px 320px;
+  background-blend-mode: normal, normal, normal, normal, multiply;
+  -webkit-mask-image: var(--deckle, none);
+  mask-image: var(--deckle, none);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter:
+    drop-shadow(var(--sh-contact))
+    drop-shadow(var(--sh-lift))
+    drop-shadow(var(--sh-ambient));
+  transition: filter var(--dur-normal, 220ms) var(--ease-paper, ease-out);
+}
+
+/* 白毛边：比纸大 3px、用另一个种子的遮罩，露出一圈参差的纤维白边。
+   注意不能挂成 .paper-sheet 的伪元素 —— 伪元素同样吃父级的 mask，
+   白边会被母遮罩精确裁掉（白边必须落在纸的轮廓之外）。 */
+.paper-piece::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -2;
+  pointer-events: none;
+  background: #fffaf1;
+  opacity: 0.45;
+  -webkit-mask-image: var(--deckle-fuzz, var(--deckle-1));
+  mask-image: var(--deckle-fuzz, var(--deckle-1));
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* 悬停：纸片被捏起一角 —— 阴影同时变大变散，接触影几乎消失 */
+.paper-piece[data-lift="true"]:hover > .paper-sheet {
+  filter:
+    drop-shadow(0 2px 2px rgba(74, 55, 34, 0.16))
+    drop-shadow(0 10px 14px -3px rgba(74, 55, 34, 0.2))
+    drop-shadow(0 28px 40px -14px rgba(74, 55, 34, 0.26));
+}
+
+/* ═════════════════ 4. 垫纸：纸叠厚度（错位两张） ═════════════════ */
+
+/* 层序（都在 .paper-piece 的 isolation 内，不会漏到页面底下）：
+   -4/-3 垫纸 → -2 白毛边 → -1 纸本体 → 0 起 是正文与胶带 */
+
+.paper-under {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background: var(--color-paper-deep, #c9ac7d);
+  -webkit-mask-image: var(--deckle-2);
+  mask-image: var(--deckle-2);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  opacity: 0.5;
+  filter: drop-shadow(0 3px 5px rgba(74, 55, 34, 0.18));
+}
+/* 第二张垫纸（更远一层）：显式类名，不用 :nth-of-type —— 同级的 paper-sheet 会打乱序号 */
+.paper-under.is-far {
+  z-index: -4;
+  opacity: 0.32;
+  -webkit-mask-image: var(--deckle-4);
+  mask-image: var(--deckle-4);
+}
+
+/* ═════════════════ 5. 和纸胶带 ═════════════════ */
+/*
+ * 真胶带三个特征：半透明（能透出下面的纸与字）、纸质纹理、两端撕口。
+ * mix-blend-mode: multiply 让它压在纸上而不是浮在上面。
+ */
+
+.washi {
+  position: absolute;
+  pointer-events: none;
+  background-color: var(--washi-tint, rgba(233, 182, 79, 0.62));
+  background-image:
+    repeating-linear-gradient(
+      var(--washi-angle, 90deg),
+      rgba(255, 255, 255, 0.34) 0 3px,
+      rgba(255, 255, 255, 0) 3px 7px
+    ),
+    var(--paper-fiber);
+  background-size: auto, 140px 140px;
+  -webkit-mask-image: var(--tape-edge);
+  mask-image: var(--tape-edge);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  mix-blend-mode: multiply;
+  opacity: 0.88;
+  filter: drop-shadow(0 1px 1.5px rgba(74, 55, 34, 0.3));
+}
+/* 胶带上那道反光：和纸有一层蜡质涂层 */
+.washi::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.5) 0 22%, transparent 45%);
+}
+
+.washi-sun { --washi-tint: rgba(233, 182, 79, 0.6); }
+.washi-sage { --washi-tint: rgba(110, 139, 114, 0.5); }
+.washi-rose { --washi-tint: rgba(216, 142, 134, 0.52); }
+.washi-sky { --washi-tint: rgba(121, 169, 188, 0.5); }
+.washi-kraft { --washi-tint: rgba(201, 172, 125, 0.72); }
+/* 格纹和纸 */
+.washi-grid {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.42) 0 1.5px, transparent 1.5px 9px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.42) 0 1.5px, transparent 1.5px 9px),
+    var(--paper-fiber);
+  background-size: auto, auto, 140px 140px;
+}
+
+/* ═════════════════ 6. 五金件：回形针 / 订书钉 / 打孔 / 缝线 ═════════════════ */
+
+/* 回形针：金属渐变 + 一道镜面高光，夹在纸的上沿 */
+.clip-metal {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(74, 55, 34, 0.34));
+}
+
+/* 订书钉：两小段金属，压出一点凹陷影 */
+.staple {
+  position: absolute;
+  width: 0.95rem;
+  height: 0.28rem;
+  pointer-events: none;
+  background: linear-gradient(180deg, #e8e4dc 0%, #b8b2a6 45%, #8d887d 100%);
+  border-radius: 1px;
+  box-shadow:
+    0 1px 1px rgba(74, 55, 34, 0.38),
+    0 0 0 0.5px rgba(74, 55, 34, 0.18);
+}
+
+/* 活页打孔：孔内是桌面的颜色，孔的上沿有纸的厚度影 */
+.punch-holes {
+  position: absolute;
+  left: 0.55rem;
+  top: 1.2rem;
+  bottom: 1.2rem;
+  width: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  pointer-events: none;
+}
+.punch-holes > i {
+  display: block;
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: rgba(150, 120, 80, 0.32);
+  box-shadow:
+    inset 0 1.5px 2px rgba(74, 55, 34, 0.45),
+    0 1px 0 rgba(255, 253, 245, 0.75);
+}
+
+/* 缝线：虚线走针 + 线迹投影 */
+.stitched {
+  position: relative;
+}
+.stitched::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1.5px dashed rgba(122, 92, 56, 0.4);
+  border-radius: 3px;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 0 rgba(255, 253, 245, 0.7));
+}
+
+/* ═════════════════ 7. 生活痕迹：咖啡渍 / 折痕 / 压痕 ═════════════════ */
+
+.coffee-ring {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      transparent 0 58%,
+      rgba(138, 106, 74, 0.2) 60%,
+      rgba(138, 106, 74, 0.28) 72%,
+      rgba(138, 106, 74, 0.08) 80%,
+      transparent 86%
+    );
+  mix-blend-mode: multiply;
+  filter: blur(0.3px);
+}
+
+/* 折痕：一条从上沿斜下去的软折，两侧一亮一暗 */
+.crease {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--crease-angle, 104deg),
+    transparent calc(var(--crease-at, 38%) - 14px),
+    rgba(122, 92, 56, 0.09) calc(var(--crease-at, 38%) - 1px),
+    rgba(255, 255, 255, 0.5) var(--crease-at, 38%),
+    transparent calc(var(--crease-at, 38%) + 16px)
+  );
+}
+
+/* ═════════════════ 8. 内页格线：横线本 / 方格本 ═════════════════ */
+
+.ruled-lines {
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 calc(var(--rule-gap, 28px) - 1px),
+    rgba(121, 169, 188, 0.26) calc(var(--rule-gap, 28px) - 1px),
+    rgba(121, 169, 188, 0.26) var(--rule-gap, 28px)
+  );
+  background-position: 0 var(--rule-offset, 0px);
+}
+.grid-lines {
+  background-image:
+    repeating-linear-gradient(180deg, transparent 0 19px, rgba(122, 92, 56, 0.13) 19px 20px),
+    repeating-linear-gradient(90deg, transparent 0 19px, rgba(122, 92, 56, 0.13) 19px 20px);
+}
+
+/* 日期间隔线：一条逐渐淡出的蜡笔横线，比 border 更像手工画的 */
+.crayon-rule {
+  position: relative;
+  height: 1.5px;
+  background-image: radial-gradient(
+    260px 1.5px at 18% 50%,
+    rgba(122, 92, 56, 0.4) 0%,
+    rgba(122, 92, 56, 0.14) 46%,
+    transparent 100%
+  );
+  background-size: 260px 1.5px;
+  background-repeat: repeat-x;
+}
+.crayon-rule::after {
+  content: "";
+  position: absolute;
+  inset: -1px 0;
+  background-image: radial-gradient(
+    320px 1px at 62% 50%,
+    rgba(216, 142, 134, 0.28) 0%,
+    transparent 70%
+  );
+  background-size: 320px 1px;
+  background-repeat: repeat-x;
+  transform: rotate(-0.25deg);
+}
+
+/* 日历里「有记录的那天」：一张压了痕的小纸片，四周一圈纸厚内阴影 */
+.torn-day {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(122, 92, 56, 0.16),
+    0 1px 1px rgba(74, 55, 34, 0.22),
+    0 3px 6px -2px rgba(74, 55, 34, 0.24);
+}
+.torn-day:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(122, 92, 56, 0.16),
+    0 2px 2px rgba(74, 55, 34, 0.2),
+    0 7px 12px -3px rgba(74, 55, 34, 0.28);
+}
+
+/* 页边红线：笔记本的装订边 */
+.margin-rule::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--margin-x, 2.6rem);
+  width: 1px;
+  background: rgba(216, 142, 134, 0.5);
+  pointer-events: none;
+}
+
+/* ═════════════════ 9. 拍立得相纸 ═════════════════ */
+
+.polaroid {
+  position: relative;
+  background-color: #fffdf7;
+  background-image:
+    linear-gradient(152deg, rgba(255, 255, 255, 0.85) 0%, transparent 42%),
+    radial-gradient(130% 120% at 96% 104%, rgba(122, 92, 56, 0.14), transparent 60%),
+    var(--paper-fiber);
+  background-size: auto, auto, 260px 260px;
+  border-radius: 2px;
+  filter:
+    drop-shadow(var(--sh-contact))
+    drop-shadow(var(--sh-lift))
+    drop-shadow(var(--sh-ambient));
+  transition:
+    transform var(--dur-normal, 220ms) var(--ease-spring-soft, ease-out),
+    filter var(--dur-normal, 220ms) var(--ease-paper, ease-out);
+}
+/* 相纸表面的塑料反光：斜向一道，hover 时扫过去 */
+.polaroid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    116deg,
+    transparent 0 38%,
+    rgba(255, 255, 255, 0.24) 47%,
+    rgba(255, 255, 255, 0.06) 54%,
+    transparent 62%
+  );
+  opacity: 0.85;
+  transition: transform 520ms var(--ease-paper, ease-out);
+}
+.polaroid:hover::after { transform: translateX(14%); }
+/* 照片本体压进相纸里：四边内阴影 */
+.polaroid-window {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 3px rgba(40, 30, 18, 0.35),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.25);
+}
+
+/* ═════════════════ 10. 便签 / 标签纸 ═════════════════ */
+
+/* 便利贴：底部有卷边翘起的暗影 */
+.sticky-note {
+  position: relative;
+  background-color: var(--sticky-color, #f7e7a8);
+  background-image:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.55), transparent 38%),
+    var(--paper-fiber);
+  background-size: auto, 200px 200px;
+  box-shadow:
+    var(--sh-contact),
+    var(--sh-lift);
+}
+.sticky-note::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 14px;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(122, 92, 56, 0.16), transparent);
+}
+
+/* 索引标签：一端斜切的书签纸 */
+.index-tab {
+  position: relative;
+  background-color: var(--tab-color, #d9b981);
+  background-image:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.5), transparent 46%),
+    var(--paper-fiber);
+  background-size: auto, 180px 180px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  filter: drop-shadow(0 2px 3px rgba(74, 55, 34, 0.28));
+}
+
+/* ═════════════════ 11. 简洁模式与降级 ═════════════════ */
+
+html[data-simple="true"] .paper-sheet {
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image: none;
+  background-color: var(--color-paper-card);
+  filter: none;
+  box-shadow: 0 1px 3px rgba(74, 55, 34, 0.18);
+  border: 1px solid rgba(74, 55, 34, 0.12);
+  border-radius: 6px;
+}
+html[data-simple="true"] .paper-sheet::before,
+html[data-simple="true"] .paper-under,
+html[data-simple="true"] .washi,
+html[data-simple="true"] .clip-metal,
+html[data-simple="true"] .staple,
+html[data-simple="true"] .coffee-ring,
+html[data-simple="true"] .crease,
+html[data-simple="true"] .punch-holes {
+  display: none;
+}
+html[data-simple="true"] .polaroid {
+  filter: none;
+  box-shadow: 0 1px 3px rgba(74, 55, 34, 0.18);
+  background-image: none;
+}
+html[data-simple="true"] .polaroid::after { display: none; }
+
+/* 不支持 mask 的浏览器：退回圆角矩形，不出现「整块消失」 */
+@supports not ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
+  .paper-sheet,
+  .washi,
+  .paper-under {
+    -webkit-mask-image: none;
+    mask-image: none;
+    border-radius: 4px;
+  }
+}
