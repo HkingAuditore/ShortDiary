@@ -218,14 +218,14 @@ export function Composer({ timezone, today }: ComposerProps) {
         void addFiles(e.dataTransfer.files);
       }}
       className={[
-        "paper-composer paper-noise relative rounded-(--radius-card) p-4 transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
+        "paper-composer paper-noise drop-spring relative rounded-(--radius-card) p-4 transition-[box-shadow,transform] duration-(--dur-fast) ease-out",
         // 发送瞬间纸条轻压一下（§3.7「发送记录」）
         create.isPending ? "translate-y-[2px] shadow-none" : "",
         dragging ? "ring-2 ring-sage ring-offset-2 ring-offset-paper-bg" : "",
       ].join(" ")}
     >
       {/* 顶部一条窄窄的胶带：标记「这是正在写的纸条」 */}
-      <span aria-hidden className="tape absolute -top-2 left-8 h-3.5 w-16 rounded-[1px] opacity-70" />
+      <span aria-hidden className="tape tape-stick absolute -top-2 left-8 h-3.5 w-16 rounded-[1px] opacity-70" />
 
       <textarea
         ref={textRef}

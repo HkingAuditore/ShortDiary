@@ -58,8 +58,8 @@ body {
   position: relative;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 72% -10%, rgba(255, 239, 186, 0.38), transparent 34rem),
-    radial-gradient(circle at 4% 72%, rgba(111, 139, 114, 0.18), transparent 28rem),
+    linear-gradient(rgba(216,185,143,.58), rgba(216,185,143,.58)),
+    url("/art-kit/assets/bitmap/corrugated-kraft-v1.png") center / 720px 720px repeat,
     var(--color-paper-bg);
   color: var(--color-ink);
   font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -113,6 +113,22 @@ body::after {
   isolation: isolate;
 }
 
+/* 中央主舞台是一张铺在桌面上的大纸，而不是悬浮的 SaaS 白板。
+   纸张只承载内容层，纹理保持低对比，避免抢正文。 */
+.paper-main-stage::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0.25rem -0.15rem 0.75rem;
+  background:
+    linear-gradient(rgba(255,250,240,.16), rgba(255,250,240,.16)),
+    url("/art-kit/assets/bitmap/torn-paper-sheet-v1.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 18px 22px rgba(76,58,39,.22));
+  transform: rotate(-0.18deg);
+}
+
+.paper-page-heading { animation: drop-spring var(--dur-enter-long) var(--ease-spring-soft) both; }
+
 .paper-main-stage::before {
   content: "";
   position: absolute;
@@ -153,7 +169,7 @@ body::after {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255, 247, 228, 0.16), transparent 45%),
-    url("/art-kit/assets/texture/corrugated.svg") center / 420px 420px,
+    url("/art-kit/assets/bitmap/corrugated-kraft-v1.png") center / 520px 520px,
     var(--color-paper-bg-deep);
   box-shadow: inset -12px 0 22px rgba(76, 58, 39, 0.08);
 }
@@ -189,9 +205,20 @@ body::after {
   border: 1px solid rgba(95, 68, 42, 0.14);
   background:
     linear-gradient(135deg, rgba(255,255,255,.44), transparent 45%),
+    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 420px 420px,
     var(--color-paper-strong);
   box-shadow: 0 12px 28px rgba(76, 58, 39, 0.16), 0 1px 0 rgba(255,255,255,.7) inset;
+  border-radius: 13px 10px 14px 9px;
 }
+
+.paper-composer textarea {
+  min-height: 118px;
+  padding: .35rem .35rem 0;
+  font-family: var(--font-serif-cn);
+  font-size: 16px;
+}
+
+.paper-composer textarea::placeholder { color: rgba(127,116,105,.68); }
 
 .paper-composer::after {
   content: "";
@@ -208,6 +235,19 @@ body::after {
 
 .paper-entry-card {
   border-left: 3px solid rgba(110, 139, 114, 0.36);
+  border-radius: 10px 7px 12px 8px;
+  background:
+    linear-gradient(100deg, rgba(255,255,255,.38), transparent 30%),
+    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png") center / 360px 360px,
+    var(--color-paper-card);
+}
+
+.paper-drop {
+  background-image:
+    linear-gradient(rgba(255,250,240,.22), rgba(255,250,240,.22)),
+    url("/art-kit/assets/bitmap/handmade-paper-fiber-v1.png");
+  background-size: auto, 380px 380px;
+  background-blend-mode: screen, multiply;
 }
 
 .paper-date-tab {
@@ -524,8 +564,13 @@ html[data-simple="true"] body::before,
 html[data-simple="true"] body::after,
 html[data-simple="true"] .paper-app-shell::before,
 html[data-simple="true"] .paper-main-stage::before,
+html[data-simple="true"] .paper-main-stage::after,
 html[data-simple="true"] .paper-scene-note,
 html[data-simple="true"] .paper-stack::before,
 html[data-simple="true"] .paper-stack::after {
   display: none;
+}
+
+html[data-simple="true"] body {
+  background: var(--color-paper-bg);
 }

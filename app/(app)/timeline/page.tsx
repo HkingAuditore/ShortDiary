@@ -55,6 +55,17 @@ export default async function TimelinePage() {
   return (
     <PageShell aside={aside}>
       <div className="space-y-4">
+        <header className="paper-page-heading flex flex-wrap items-end justify-between gap-4 px-2 pb-1 pt-1">
+          <div>
+            <p className="hand-note text-xs tracking-wide text-ink-muted">A Brighter Day · One Page at a Time</p>
+            <h1 className="mt-1 font-(--font-serif-cn) text-3xl tracking-[0.08em] text-ink sm:text-4xl">
+              {formatChineseDate(todayStr)}
+            </h1>
+          </div>
+          <div className="paper-weather-note hand-note rotate-2 rounded-[4px] bg-sun/20 px-3 py-2 text-xs text-ink-muted shadow-[0_3px_8px_rgba(76,58,39,.1)]">
+            ☀ 今天也要好好生活
+          </div>
+        </header>
         <Composer timezone={ctx.timezone} today={todayStr} />
         <EntryList
           timezone={ctx.timezone}

@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="paper-main-stage mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 md:px-8 md:pb-10">
+        <main className="paper-main-stage mx-auto w-full max-w-[1240px] flex-1 px-4 pb-24 pt-5 md:px-8 md:pb-10">
           <span aria-hidden className="paper-scene-note hidden lg:block" />
           {children}
         </main>

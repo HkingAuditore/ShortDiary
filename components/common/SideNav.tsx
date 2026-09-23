@@ -6,12 +6,12 @@ import { clsx } from "clsx";
 import { signOut } from "next-auth/react";
 
 const ITEMS = [
-  { href: "/timeline", label: "时间线", hint: "今天" },
-  { href: "/calendar", label: "日历", hint: "归档" },
-  { href: "/photos", label: "相册", hint: "照片" },
-  { href: "/reviews", label: "AI 复盘", hint: "回顾" },
-  { href: "/search", label: "搜索回忆", hint: "Cmd+K" },
-  { href: "/settings", label: "设置", hint: "账户 / AI" },
+  { href: "/timeline", label: "时间线", hint: "今天", icon: "⌂" },
+  { href: "/calendar", label: "日历", hint: "归档", icon: "▦" },
+  { href: "/photos", label: "相册", hint: "照片", icon: "▧" },
+  { href: "/reviews", label: "AI 复盘", hint: "回顾", icon: "✦" },
+  { href: "/search", label: "搜索回忆", hint: "Cmd+K", icon: "⌕" },
+  { href: "/settings", label: "设置", hint: "账户 / AI", icon: "⚙" },
 ];
 
 export function SideNav({ displayName }: { displayName: string }) {
@@ -19,7 +19,7 @@ export function SideNav({ displayName }: { displayName: string }) {
 
   return (
     <nav className="flex h-full w-full flex-col gap-1 px-3 py-5" aria-label="主导航">
-      <Link href="/timeline" className="paper-nav-brand paper-focus group mb-4 flex flex-col gap-1 px-2">
+      <Link href="/timeline" className="paper-nav-brand paper-focus group mb-6 flex flex-col gap-1 rounded-[10px] bg-paper-card/55 px-3 py-3 shadow-[0_5px_14px_rgba(76,58,39,0.08)]">
         <span className="flex items-center gap-2.5">
           {/* Logo：三层叠纸 —— 牛皮纸底 + 撕边米白 + 鼠标悬停时彩色纸片轻跳 */}
           <span aria-hidden className="relative inline-flex h-9 w-9 items-center justify-center">
@@ -29,9 +29,9 @@ export function SideNav({ displayName }: { displayName: string }) {
               剪
             </span>
           </span>
-          <span className="font-(--font-serif-cn) text-lg tracking-wide text-ink">剪纸日记</span>
+          <span className="font-(--font-serif-cn) text-xl tracking-wide text-ink">小日子</span>
         </span>
-        <span className="hand-note pl-11 text-[11px]">像发消息一样记下日常</span>
+        <span className="hand-note pl-11 text-[11px]">MY DIARY · 记录生活</span>
       </Link>
 
       {ITEMS.map((item) => {
@@ -42,7 +42,7 @@ export function SideNav({ displayName }: { displayName: string }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "paper-focus relative flex items-baseline justify-between rounded-[4px] px-3 py-2.5 text-sm transition-all duration-(--dur-fast) ease-out",
+              "paper-focus relative flex items-center gap-3 rounded-[8px] px-3 py-3 text-sm transition-all duration-(--dur-fast) ease-out",
               active
                 ? "bg-paper-strong text-ink shadow-(--shadow-paper) -translate-y-[1px]"
                 : "text-ink/75 hover:bg-paper-strong/70 hover:-translate-y-[1px]",
@@ -52,8 +52,9 @@ export function SideNav({ displayName }: { displayName: string }) {
               /* 当前页标记：左侧一小片冲切彩纸 */
               <span aria-hidden className="absolute -left-1 top-1/2 h-5 w-2 -translate-y-1/2 rounded-r-[3px] bg-sage shadow-[1px_0_2px_rgba(76,58,39,0.2)]" />
             ) : null}
-            <span>{item.label}</span>
-            <span className="text-[11px] text-ink-faint">{item.hint}</span>
+            <span aria-hidden className="w-5 text-center text-lg leading-none opacity-80">{item.icon}</span>
+            <span className="flex-1">{item.label}</span>
+            <span className="text-[10px] text-ink-faint">{item.hint}</span>
           </Link>
         );
       })}
