@@ -143,10 +143,11 @@ Next 的内联引导脚本会被全部拦截，水合失败，表现为整页空
    - cron-job.org（免费，支持分钟级，只支持 GET 时用 `?secret=<JOB_TICK_SECRET>`）
    - 自有服务器 crontab
 
-3. **平台 schedules（小时级兜底）**：仓库根目录的 `edgeone.json` 声明了每小时触发
+3. **平台 schedules（小时级兜底，仅私有仓库可用）**：仓库根目录的 `edgeone.json` 声明了每小时触发
    `/api/jobs/tick` 的定时任务。部署前把其中 `payload.secret` 的占位符替换为
    `JOB_TICK_SECRET` 的值（平台 payload 无法读环境变量，只能静态填写）。
-   外部 cron 挂掉时任务最多延迟一小时被兜底捞起。
+   **⚠️ 仓库公开时不要把真实 secret 写进 edgeone.json**——会随代码泄露。
+   公开仓库保持占位符即可（每小时触发会 403，无害），外部 cron 是唯一调度来源。
 
    > 注：EdgeOne 文档称 schedules 的 cron「最小间隔一天」，但官方速查表又列出每小时表达式；
    > 若平台拒绝每小时调度，把 `edgeone.json` 的 cron 降为每日即可，主力始终是外部 cron。
