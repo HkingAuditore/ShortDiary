@@ -12,7 +12,6 @@
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { ensureSchema } = await import("./lib/db/migrate");
-    const { startWorker } = await import("./lib/jobs/runner");
 
     try {
       await ensureSchema();
@@ -20,6 +19,14 @@ export async function register(): Promise<void> {
       console.error("[startup] 数据库 schema 初始化失败：", err);
     }
 
+    // external 模式：不启动进程内轮询（EdgeOne Pages 等平台的实例会冻结，
+    // setInterval 不可靠），任务由外部调度打 POST /api/jobs/tick 驱动
+    if (process.env.JOB_WORKER_MODE === "external") {
+      console.log("[startup] 任务 worker 运行在 external 模式（外部调度触发 /api/jobs/tick）");
+      return;
+    }
+
+    const { startWorker } = await import("./lib/jobs/runner");
     try {
       startWorker();
     } catch (err) {

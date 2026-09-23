@@ -14,6 +14,7 @@ import {
 } from "./entry.repo";
 import { attachAssets as repoAttach } from "@/lib/asset/asset.repo";
 import { setEntryTags } from "@/lib/tag/tag.repo";
+import { kickWorker } from "@/lib/jobs/runner";
 import { fetchEntryById, fetchTimelinePage } from "@/lib/db/queries/timeline";
 import { mapTimelineRow } from "./entry.mapper";
 import type { CreateEntryInput, EntryView, ListEntryQuery, UpdateEntryInput } from "./entry.schema";
@@ -108,7 +109,9 @@ export async function createEntry(ctx: ServiceContext, input: CreateEntryInput):
       type: "ai_annotate",
       payload: { entryId: created.id, userId: ctx.userId },
       idempotencyKey: `annotate:${created.id}`,
-    }).catch((err) => logger.warn({ err }, "AI 整理任务入队失败"));
+    })
+      .then(() => kickWorker())
+      .catch((err) => logger.warn({ err }, "AI 整理任务入队失败"));
   }
 
   return (await getEntry(ctx, created.id))!;
@@ -143,7 +146,9 @@ export async function updateEntry(ctx: ServiceContext, id: string, input: Update
       type: "ai_annotate",
       payload: { entryId: id, userId: ctx.userId },
       idempotencyKey: `annotate:${id}:${contentHash(id, input.content)}`,
-    }).catch(() => undefined);
+    })
+      .then(() => kickWorker())
+      .catch(() => undefined);
   }
 
   return (await getEntry(ctx, id))!;

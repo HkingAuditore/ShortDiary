@@ -1,5 +1,6 @@
 import { AppError } from "@/lib/errors/app-error";
 import { enqueue } from "@/lib/jobs/queue";
+import { kickWorker } from "@/lib/jobs/runner";
 import { findReviewById, listReviews as repoList, upsertPending } from "./review.repo";
 import { versionOf } from "@/lib/jobs/workers/review";
 import { endOfMonth, endOfWeek, startOfMonth, startOfWeek, today } from "@/lib/utils/date";
@@ -46,6 +47,7 @@ export async function requestReview(ctx: ServiceContext, input: { type: ReviewTy
     idempotencyKey: `review:${ctx.userId}:${input.type}:${range.startDate}:${version}`,
     maxAttempts: 2,
   });
+  kickWorker();
 
   return { reviewId: review.id, jobId, deduped, ...range, status: review.status };
 }
@@ -66,6 +68,7 @@ export async function regenerateReview(ctx: ServiceContext, reviewId: string) {
     idempotencyKey: `review:${ctx.userId}:${review.type}:${review.startDate}:${review.promptVersion}:${Date.now()}`,
     maxAttempts: 2,
   });
+  kickWorker();
 
   return { reviewId: review.id, status: "pending" };
 }

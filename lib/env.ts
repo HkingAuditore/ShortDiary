@@ -49,6 +49,20 @@ const schema = z.object({
     (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
     z.enum(["cos", "local"]).optional(),
   ),
+
+  /**
+   * 任务 worker 运行模式：
+   * - inprocess（默认）：进程内 setInterval 轮询，适合自托管 / 本地开发
+   * - external：不起常驻轮询，由外部调度（cron / 平台定时触发器）打 POST /api/jobs/tick，
+   *   适合 EdgeOne Pages 等实例会冻结的无服务器平台
+   */
+  JOB_WORKER_MODE: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.enum(["inprocess", "external"]).default("inprocess"),
+  ),
+
+  /** external 模式下 tick 端点的触发凭证；不配置则端点拒绝所有请求 */
+  JOB_TICK_SECRET: optionalString,
 });
 
 export type Env = z.infer<typeof schema> & { storageDriver: "cos" | "local" };

@@ -1,0 +1,15 @@
+{
+  "$comment": "EdgeOne Pages 部署配置。schedules 为任务队列的小时级兜底调度（主力靠外部 cron 每分钟打 /api/jobs/tick，见 README「无服务器平台部署」）。部署前把 payload.secret 替换为与环境变量 JOB_TICK_SECRET 相同的值。",
+  "schedules": [
+    {
+      "name": "job-worker-hourly-sweep",
+      "cron": "0 * * * *",
+      "timezone": "Asia/Shanghai",
+      "method": "POST",
+      "path": "/api/jobs/tick",
+      "payload": {
+        "secret": "REPLACE_WITH_JOB_TICK_SECRET"
+      }
+    }
+  ]
+}
