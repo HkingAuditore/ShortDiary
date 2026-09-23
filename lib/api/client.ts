@@ -137,12 +137,22 @@ export async function uploadWithTicket(ticket: UploadTicketLike, blob: Blob, mim
       ? `${ticket.url}?key=${encodeURIComponent(ticket.key)}&token=${encodeURIComponent(ticket.token ?? "")}`
       : ticket.url;
 
-  const res = await fetch(url, {
-    method: ticket.method,
-    headers: { "content-type": mime, ...(ticket.headers ?? {}) },
-    body: blob,
-    credentials: "same-origin",
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: ticket.method,
+      headers: { "content-type": mime, ...(ticket.headers ?? {}) },
+      body: blob,
+      credentials: "same-origin",
+    });
+  } catch (err) {
+    // 网络层失败（连接重置 / CORS 被拒 / 断网）裸抛 TypeError，用户只会看到 "Failed to fetch"；
+    // 收敛成统一文案，避免把浏览器内部错误直接糊在界面上
+    if (err instanceof TypeError) {
+      throw new ApiError("STORAGE_FAILED", "图片上传中断了，请检查网络后重试", 0);
+    }
+    throw err;
+  }
 
   if (!res.ok) throw new ApiError("STORAGE_FAILED", `上传失败（HTTP ${res.status}）`, res.status);
 }
