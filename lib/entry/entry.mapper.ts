@@ -1,3 +1,4 @@
+import { isAiPending } from "./ai-status";
 import type { EntryAiView, EntryAssetView, EntryTagView, EntryView } from "./entry.schema";
 
 interface RawAsset {
@@ -78,7 +79,9 @@ function reactionOf(c: Record<string, unknown>): string | undefined {
 function buildAiView(rows: RawAi[], status: string): EntryAiView | null {
   const annotation = rows.find((r) => r.type === "annotation");
   if (!annotation) {
-    return status === "pending" || status === "running" ? { status } : { status: "skipped" };
+    // 还挂在队列上的（含手动重跑的 queued）如实回传状态，界面据此显示「正在读」并继续轮询；
+    // 只有真正不会再有产出的状态才归为 skipped
+    return isAiPending(status) ? { status } : { status: "skipped" };
   }
   const c = (annotation.content ?? {}) as Record<string, unknown>;
   return {

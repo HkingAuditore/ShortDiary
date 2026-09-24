@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 暖纸底色，与站点视觉一致 -->
+    <color name="ic_launcher_background">#F4ECE1</color>
+    <color name="splash_background">#F4ECE1</color>
+</resources>

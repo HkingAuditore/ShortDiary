@@ -5,6 +5,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { EntryCard } from "./EntryCard";
 import { WashiTape } from "@/components/paper/PaperCard";
 import { useEntries, type EntriesPage, type EntryFilters } from "@/lib/hooks/useEntries";
+import { isAiPending } from "@/lib/entry/ai-status";
 import { formatChineseDate, relativeDayLabel } from "@/lib/utils/date";
 import type { EntryView } from "@/lib/entry/entry.schema";
 
@@ -78,6 +79,8 @@ export function EntryList({
       // 估得越准，未测量行的首帧重叠越轻（measureElement 会在渲染后纠正）。
       let base = 96 + Math.min(row.entry.content.length, 600) * 0.13;
       if (row.entry.ai?.reaction) base += 96;
+      // 附注还在生成时占着一张「正在读」的便签，位置要预留出来，否则生成完成的瞬间列表会跳
+      else if (isAiPending(row.entry.aiStatus)) base += 56;
       if (row.entry.tags.length > 0) base += 34;
       const images = row.entry.assets.length > 0 ? 260 : 0;
       return base + images;

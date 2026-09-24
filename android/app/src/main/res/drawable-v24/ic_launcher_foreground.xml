@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 剪纸日记图标前景：一张被折起一角的纸。
+     108dp 网格中内容占中心 70dp，为 launcher 遮罩留出安全边距。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="19"
+        android:translateY="19"
+        android:scaleX="2.1875"
+        android:scaleY="2.1875">
+        <path
+            android:fillColor="#FBF7F1"
+            android:pathData="M8,5h11l6,6v16a1,1 0 0,1 -1,1H9a1,1 0 0,1 -1,-1Z"
+            android:strokeColor="#2E2A26"
+            android:strokeWidth="1.4"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#DCCFC0"
+            android:pathData="M19,5l6,6h-5a1,1 0 0,1 -1,-1Z"
+            android:strokeColor="#2E2A26"
+            android:strokeWidth="1.4"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M11,14L21,14M11,18L21,18M11,22L17,22"
+            android:strokeColor="#8A9A7B"
+            android:strokeWidth="1.4"
+            android:strokeLineCap="round" />
+    </group>
+</vector>

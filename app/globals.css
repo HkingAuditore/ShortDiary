@@ -563,6 +563,27 @@ body::after {
   50% { opacity: 0.9; }
 }
 
+/* AI 便签贴上来：占位便签与生成好的附注共用同一段入场，位置不跳。
+   只动 transform / opacity —— Tailwind v4 的 rotate-* 走独立的 rotate 属性，不会被这里覆盖 */
+@keyframes ai-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.ai-note-in {
+  animation: ai-note-in 420ms var(--ease-spring-soft, var(--ease-paper)) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-note-in {
+    animation: none;
+  }
+}
+
 .crayon-underline {
   position: relative;
   display: inline-block;

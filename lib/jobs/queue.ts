@@ -22,10 +22,47 @@ export interface EnqueueInput {
   maxAttempts?: number;
 }
 
+/**
+ * 已经跑完的状态：命中这些状态的任务不算「同一件事还在做」，应当被复活重跑。
+ * 否则「再试一次」这类入口永远空转 —— 同一条记录内容不变时幂等键不变，
+ * 而上次的 job 行还留在表里（幂等键唯一），enqueue 会一路 dedupe 掉新请求，
+ * 界面却已经把 ai_status 改成 queued，变成永远转圈的僵尸。
+ */
+const TERMINAL_JOB_STATUSES = ["succeeded", "failed", "dead"] as const;
+
 export async function enqueue(input: EnqueueInput): Promise<{ id: string; deduped: boolean }> {
   const db = await getDb();
-  const existing = await db.select({ id: jobs.id }).from(jobs).where(eq(jobs.idempotencyKey, input.idempotencyKey)).limit(1);
-  if (existing[0]) return { id: existing[0].id, deduped: true };
+  const existing = await db
+    .select({ id: jobs.id, status: jobs.status })
+    .from(jobs)
+    .where(eq(jobs.idempotencyKey, input.idempotencyKey))
+    .limit(1);
+
+  const hit = existing[0];
+  if (hit) {
+    // 还在队列里（queued / running）：确实已经排上了，什么都不用做
+    if (!(TERMINAL_JOB_STATUSES as readonly string[]).includes(hit.status)) {
+      return { id: hit.id, deduped: true };
+    }
+
+    // 终态：原样复活这一行，重置尝试次数与失败信息
+    const [revived] = await db
+      .update(jobs)
+      .set({
+        status: "queued",
+        payload: input.payload,
+        attempts: 0,
+        runAfter: input.runAfter ?? new Date(),
+        lastError: null,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(jobs.id, hit.id), inArray(jobs.status, [...TERMINAL_JOB_STATUSES])))
+      .returning({ id: jobs.id });
+
+    // 复活成功即算新入队；若并发下被别人抢先开跑，就当作已入队
+    if (revived) return { id: revived.id, deduped: false };
+    return { id: hit.id, deduped: true };
+  }
 
   try {
     const [row] = await db
@@ -94,6 +131,18 @@ export async function claimNext(types: JobType[]): Promise<Job | null> {
 
 const BACKOFF_MS = [1_000, 4_000, 15_000];
 
+/**
+ * 心跳：任务执行期间定期把 updated_at 推到现在。
+ *
+ * requeueStuckJobs 是靠「running 且 updated_at 太旧」来判断执行进程已死的，
+ * 没有心跳时它会误伤真正在跑的长任务 —— 复盘一次要 3–9 分钟，而回收阈值只有 2 分钟，
+ * 于是长任务每两分钟就被"回收"一次并被另一个 tick 重新领走（同一份复盘被反复调用 AI）。
+ */
+export async function touchJob(id: string): Promise<void> {
+  const db = await getDb();
+  await db.update(jobs).set({ updatedAt: new Date() }).where(eq(jobs.id, id));
+}
+
 export async function markSucceeded(id: string): Promise<void> {
   const db = await getDb();
   await db.update(jobs).set({ status: "succeeded", lastError: null, updatedAt: new Date() }).where(eq(jobs.id, id));
@@ -158,4 +207,15 @@ export async function nextQueuedRunAt(): Promise<Date | null> {
     .orderBy(asc(jobs.runAfter))
     .limit(1);
   return rows[0]?.runAfter ?? null;
+}
+
+/** 某一类任务还有多少在排队（用于观测「长任务饿着没跑」这类情况） */
+export async function queuedDepth(types: JobType[]): Promise<number> {
+  if (types.length === 0) return 0;
+  const db = await getDb();
+  const rows = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(jobs)
+    .where(and(eq(jobs.status, "queued"), inArray(jobs.type, types)));
+  return rows[0]?.n ?? 0;
 }

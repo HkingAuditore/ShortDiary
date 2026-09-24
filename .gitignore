@@ -13,3 +13,13 @@ playwright-report/
 test-results/
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Capacitor Android 壳（android/ 本身要提交，只有构建产物忽略）
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+*.apk
+*.aab

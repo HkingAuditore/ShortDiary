@@ -147,8 +147,14 @@ export async function updateEntry(ctx: ServiceContext, id: string, input: Update
       payload: { entryId: id, userId: ctx.userId },
       idempotencyKey: `annotate:${id}:${contentHash(id, input.content)}`,
     })
-      .then(() => kickWorker())
-      .catch(() => undefined);
+      .then(async () => {
+        // 入队成功才把状态拨回 queued：正文变了，旧附注就不再对应当前内容，
+        // 界面得显示「正在重写」并开始轮询 —— 否则改完内容后附注是旧的，
+        // 新的生成完了也没人告诉前端（ai_status 一直停在 completed）。
+        await repoUpdate(ctx.userId, id, { aiStatus: "queued" }).catch(() => undefined);
+        kickWorker();
+      })
+      .catch((err) => logger.warn({ err }, "AI 整理任务入队失败"));
   }
 
   return (await getEntry(ctx, id))!;

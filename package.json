@@ -15,9 +15,15 @@
     "db:seed": "tsx scripts/seed.ts",
     "bootstrap": "tsx scripts/bootstrap-user.ts",
     "invite": "tsx scripts/create-invite.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "android:sync": "cap sync android",
+    "android:debug": "cd android && gradlew.bat assembleDebug",
+    "android:release": "cd android && gradlew.bat assembleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "@electric-sql/pglite": "^0.5.8",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",

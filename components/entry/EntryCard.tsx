@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { apiSend } from "@/lib/api/client";
+import { apiGet, apiSend } from "@/lib/api/client";
+import { isAiFailed, isAiPending } from "@/lib/entry/ai-status";
+import { AiPendingNote } from "./AiPendingNote";
 import { PaperButton, PaperCard, TagChip, PolaroidPhoto, HandNote } from "@/components/paper/PaperCard";
 import { useToast } from "@/components/common/Toast";
 import { blurhashToDataUrl } from "@/lib/media/placeholder";
@@ -55,11 +57,33 @@ interface EntryCardProps {
   timezone: string;
 }
 
-export function EntryCard({ entry, timezone }: EntryCardProps) {
+export function EntryCard({ entry: entryProp, timezone }: EntryCardProps) {
   const toast = useToast();
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(entry.content);
+  const [draft, setDraft] = useState(entryProp.content);
+
+  const pendingFromProps = isAiPending(entryProp.aiStatus);
+
+  /**
+   * 附注生成中时只轮询这一条。
+   * 时间线是游标分页的无限列表，整页 refetch 会随已加载页数放大请求量；
+   * 这里也不依赖列表刷新的时机：一旦取回的那份不再是「生成中」，下一轮就不再续期。
+   */
+  const live = useQuery({
+    queryKey: queryKeys.entries.detail(entryProp.id),
+    queryFn: () => apiGet<EntryView>(`/api/entries/${entryProp.id}`),
+    enabled: pendingFromProps,
+    refetchInterval: (query) => {
+      const fresh = query.state.data;
+      if (fresh && fresh.updatedAt > entryProp.updatedAt && !isAiPending(fresh.aiStatus)) return false;
+      return pendingFromProps ? 2_500 : false;
+    },
+    staleTime: 0,
+  });
+
+  // 只采纳服务端更新的一份：轮询期间若用户刚改过内容，别让旧快照把它盖回去
+  const entry = live.data && live.data.updatedAt > entryProp.updatedAt ? live.data : entryProp;
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: queryKeys.entries.all });
@@ -101,6 +125,21 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
   const ai = entry.ai;
   // 没有正文就不贴便签：只挂几个主题词的空便签看着像「附注生成了一半」
   const showAi = Boolean(ai?.reaction);
+  // pending / queued / running 都算「正在生成」：worker 领走任务后会立刻把状态改成
+  // running，只认 pending 的话提示会当场消失，看起来就像卡死了
+  const aiPending = isAiPending(entry.aiStatus);
+  /** 旧附注还在、内容已经改了：便签角上标一句「正在重写」，别让用户读着旧内容以为没反应 */
+  const aiRewriting = aiPending && showAi;
+
+  /** 手动催一次整理：等太久或生成失败时的出口，落成 queued 后界面立刻变回「正在读」 */
+  const reannotate = useMutation({
+    mutationFn: () => apiSend<{ jobId: string }>(`/api/ai/annotate/${entry.id}`, "POST", {}),
+    onSuccess: () => {
+      invalidate();
+      toast.push("已经重新排上队了，马上就好", { tone: "info" });
+    },
+    onError: (err: Error) => toast.push(err.message, { tone: "error" }),
+  });
 
   return (
     <PaperCard
@@ -110,9 +149,9 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       hover
       stack={entry.assets.length > 0}
       clip={showAi}
-      className={["paper-entry-card scroll-mt-6 px-4 py-3.5", entry.aiStatus === "pending" ? "ai-scanning-wrap" : ""].join(" ")}
+      className={["paper-entry-card scroll-mt-6 px-4 py-3.5", aiPending ? "ai-scanning-wrap" : ""].join(" ")}
     >
-      {entry.aiStatus === "pending" ? <span aria-hidden className="ai-scan-layer" /> : null}
+      {aiPending ? <span aria-hidden className="ai-scan-layer" /> : null}
       <header className="flex items-start justify-between gap-2">
         <time dateTime={entry.occurredAt} className="hand-note text-[13px] tracking-wide text-ink">
           {timeInTimeZone(entry.occurredAt, timezone)}
@@ -193,10 +232,20 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
       {showAi ? (
         /* AI 附注 = 贴在记录下方的一张小便签：底色不同、角度不同，一眼分得清「谁写的」 */
         <div
-          className="sticky-note relative mt-3.5 -rotate-[0.6deg] px-3 py-2.5 text-xs leading-relaxed text-ink/90"
+          className="sticky-note ai-note-in relative mt-3.5 -rotate-[0.6deg] px-3 py-2.5 text-xs leading-relaxed text-ink/90"
           style={{ "--sticky-color": "#e7efe3" } as React.CSSProperties}
         >
           <HandNote className="mr-1.5 text-[13px] text-sage">AI 附注</HandNote>
+          {aiRewriting ? (
+            <span className="hand-note inline-flex items-center gap-1 text-[11px]">
+              正在重写
+              <span className="inline-flex items-center gap-0.5 text-sage" aria-hidden>
+                <span className="ink-dot-2" />
+                <span className="ink-dot-2" />
+                <span className="ink-dot-2" />
+              </span>
+            </span>
+          ) : null}
           {ai?.reaction ? <p className="mt-0.5">{ai.reaction}</p> : null}
           {ai?.topics?.length ? (
             <p className="mt-1.5 flex flex-wrap gap-1 text-ink-muted">
@@ -208,12 +257,30 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
             </p>
           ) : null}
         </div>
-      ) : entry.aiStatus === "pending" ? (
-        <p className="mt-3 flex items-center gap-1 text-xs text-ink-muted">
-          AI 整理中
-          <span className="ink-dot-2" />
-          <span className="ink-dot-2" />
-          <span className="ink-dot-2" />
+      ) : aiPending ? (
+        /* 生成中占住附注将要出现的位置：纸面扫描 + 一个在走的秒数 */
+        <AiPendingNote onRetry={() => reannotate.mutate()} retrying={reannotate.isPending} />
+      ) : isAiFailed(entry.aiStatus) ? (
+        /* 失败大多数是服务商没配好或模型报错，给一条能自己排查的路 */
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+          <span>AI 附注这次没写出来。</span>
+          <button
+            type="button"
+            disabled={reannotate.isPending}
+            onClick={() => reannotate.mutate()}
+            className="paper-focus underline decoration-dotted underline-offset-2 transition-colors hover:text-ink disabled:opacity-50"
+          >
+            {reannotate.isPending ? "正在催…" : "再试一次"}
+          </button>
+          <span aria-hidden className="text-ink-muted/50">
+            ·
+          </span>
+          <a
+            href="/settings"
+            className="paper-focus underline decoration-dotted underline-offset-2 transition-colors hover:text-ink"
+          >
+            检查 AI 设置
+          </a>
         </p>
       ) : null}
 

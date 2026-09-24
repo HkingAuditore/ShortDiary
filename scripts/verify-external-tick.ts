@@ -43,10 +43,15 @@ async function main() {
     idempotencyKey: "tick-verify-annotate",
     maxAttempts: 2,
   });
+  await enqueue({
+    type: "review_generate",
+    payload: {},
+    idempotencyKey: "tick-verify-review",
+  });
   const stuckId = await insertStuckRunningJob();
 
-  console.log("[3] runExternalTick(budgetMs=8000)...");
-  const stats = await runExternalTick({ budgetMs: 8_000 });
+  console.log("[3] runExternalTick(budgetMs=25000, mode=auto)...");
+  const stats = await runExternalTick({ budgetMs: 25_000 });
   console.log("    stats =", JSON.stringify(stats, null, 2));
 
   const db = await getDb();
@@ -57,6 +62,7 @@ async function main() {
 
   const exportJob = await readStatus("tick-verify-export");
   const annotateJob = await readStatus("tick-verify-annotate");
+  const reviewJob = await readStatus("tick-verify-review");
   const stuckJob = (await db.select().from(jobs).where(eq(jobs.id, stuckId)).limit(1))[0];
 
   console.log("[4] 断言：");
@@ -68,6 +74,10 @@ async function main() {
     ["annotate 任务有错误详情", Boolean(annotateJob?.lastError)],
     ["claimed >= 2（export + annotate 至少各一次）", stats.claimed >= 2],
     ["succeeded >= 2（export 一次 + 回收的卡死任务一次）", stats.succeeded >= 2],
+    // 2026-09-24 事故回归：复盘要 3–9 分钟，25s 预算的 tick 绝不能领走它，
+    // 否则整条队列被一条长任务堵死，用户刚写完的记录永远停在「AI 整理中」
+    ["25s 预算下复盘不被领取", stats.review.claimed === 0],
+    ["复盘仍留在队列里等专属触发器", reviewJob?.status === "queued"],
   ];
   let allOk = true;
   for (const [name, ok] of checks) {

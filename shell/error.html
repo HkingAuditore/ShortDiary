@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>剪纸日记</title>
+    <style>
+      :root {
+        --paper: #f4ece1;
+        --ink: #2e2a26;
+        --muted: #8a8074;
+        --accent: #8a9a7b;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+          "Microsoft YaHei", system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card { max-width: 340px; width: 100%; text-align: center; }
+      .mark { width: 72px; height: 72px; margin: 0 auto 24px; display: block; }
+      h1 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: .02em; }
+      p { font-size: 14px; line-height: 1.7; color: var(--muted); margin: 0 0 28px; }
+      button {
+        font: inherit;
+        font-size: 15px;
+        color: var(--paper);
+        background: var(--ink);
+        border: 0;
+        border-radius: 10px;
+        padding: 12px 28px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:active { opacity: .82; }
+      .hint { font-size: 12px; color: var(--muted); margin-top: 18px; opacity: .75; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <svg class="mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="#F4ECE1" />
+        <path d="M8 5 h11 l6 6 v16 a1 1 0 0 1 -1 1 H9 a1 1 0 0 1 -1 -1 Z"
+              fill="#FBF7F1" stroke="#2E2A26" stroke-width="1.4" stroke-linejoin="round" />
+        <path d="M19 5 l6 6 h-5 a1 1 0 0 1 -1 -1 Z"
+              fill="#DCCFC0" stroke="#2E2A26" stroke-width="1.4" stroke-linejoin="round" />
+        <g stroke="#8A9A7B" stroke-width="1.4" stroke-linecap="round">
+          <line x1="11" y1="14" x2="21" y2="14" />
+          <line x1="11" y1="18" x2="21" y2="18" />
+          <line x1="11" y1="22" x2="17" y2="22" />
+        </g>
+      </svg>
+      <h1>暂时连不上抽屉</h1>
+      <p>需要网络才能打开日记。<br />确认联网后，点下面重新来一次。</p>
+      <button onclick="retry()">重新加载</button>
+      <div class="hint" id="hint"></div>
+    </div>
+    <script>
+      function retry() {
+        var hint = document.getElementById('hint');
+        hint.textContent = '正在重试…';
+        setTimeout(function () {
+          window.location.reload();
+        }, 120);
+      }
+      // 一进来先自动试一次，避免只是瞬时抖动
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          window.location.reload();
+        }, 2500);
+      });
+    </script>
+  </body>
+</html>
