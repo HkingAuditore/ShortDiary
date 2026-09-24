@@ -169,7 +169,11 @@ Next 的内联引导脚本会被全部拦截，水合失败，表现为整页空
      -H "Authorization: Bearer <JOB_TICK_SECRET>"
    ```
 
-   - GitHub Actions `schedule`（免费，最短 5 分钟，实际有数分钟抖动）
+   - **腾讯云 SCF 定时触发器**（本项目生产环境用的就是这个：定时触发器起一个
+     Node 函数去打上面的 curl，密钥放 SCF 环境变量，与 EdgeOne 那份同源，
+     不必再往任何代码托管平台存一份）
+   - GitHub Actions `schedule`（免费，最短 5 分钟，实际有数分钟抖动；
+     密钥要另存一份到 repository secret）
    - cron-job.org（免费，支持分钟级，只支持 GET 时用 `?secret=<JOB_TICK_SECRET>`）
    - 自有服务器 crontab
 
@@ -213,19 +217,23 @@ Next 的内联引导脚本会被全部拦截，水合失败，表现为整页空
 - `app/global-error.tsx`、`app/error.tsx`、`app/(app)/error.tsx`：三级错误边界，
   出错时给中文纸卡 + 「再试一次」，并显示 `digest` 便于报障。
 
-**运维侧（仍需配置）**：定期打一个**会查库**的端点把两边叫醒。
+**运维侧**：保活只需要「定期打一个**会查库**的端点」。
 
-- 仓库内已带 `.github/workflows/keepalive.yml`，每 10 分钟打一次 `/api/ready`
-  （会执行 `SELECT 1`）。站点不是 `diary.toyempires.top` 的话，在仓库
-  Settings → Variables 里设 `KEEPALIVE_BASE_URL`；想顺便跑任务队列就再加
-  repository secret `JOB_TICK_SECRET`。**`/api/health` 不查库，拿它保活无效。**
-- 要分钟级精度改用 cron-job.org 或自有服务器 crontab：
+本项目生产环境用**腾讯云 SCF 定时触发器**每分钟打 `POST /api/jobs/tick`——
+它既驱动任务队列，又因为这趟请求要查库，顺带把函数实例和远端 Postgres 一起叫醒。
+**所以只要 SCF 调度在跑，保活就是免费的，不需要额外配置。**
 
-  ```bash
-  */5 * * * * curl -fsS --max-time 45 https://<域名>/api/ready > /dev/null
-  ```
+没有等价调度时（或哪天停掉 SCF），任选其一补上：
 
-- Neon 控制台可把 compute auto-suspend 调长或关掉，从源头消除第 2 条。
+```bash
+# cron-job.org / 自有服务器 crontab，每 5 分钟
+*/5 * * * * curl -fsS --max-time 45 https://<域名>/api/ready > /dev/null
+```
+
+Neon 控制台可把 compute auto-suspend 调长或关掉，从源头消除第 2 条。
+
+> ⚠️ **`/api/health` 不查库，拿它保活是无效的**——必须打 `/api/ready`（会执行 `SELECT 1`）
+> 或 `/api/jobs/tick`。
 
 ### 本地开发注意（PGlite）
 
