@@ -4,6 +4,10 @@ import { logger } from "@/lib/obs/logger";
 import { toErrorResponse, toSuccessResponse } from "@/lib/errors/handler";
 import { AppError } from "@/lib/errors/app-error";
 import { checkRateLimit } from "./rate-limit";
+import { withDbRetry } from "@/lib/db/retry";
+
+/** 幂等的读方法：连接抖动时可以安全重建连接后重试 */
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /**
  * Route Handler 包装器：注入 requestId（AsyncLocalStorage 全链路透传）、
@@ -38,8 +42,9 @@ export function defineRoute<T>(
   return async function routeHandler(req: NextRequest, segment: RouteSegment): Promise<Response> {
     const requestId = req.headers.get("x-request-id") ?? newRequestId();
     const startedAt = Date.now();
+    const pathname = new URL(req.url).pathname;
 
-    return runWithContext({ requestId, path: new URL(req.url).pathname }, async () => {
+    return runWithContext({ requestId, path: pathname }, async () => {
       try {
         if (options.rateLimit) {
           const identity = options.rateLimit.key ?? req.headers.get("x-forwarded-for") ?? "local";
@@ -51,7 +56,11 @@ export function defineRoute<T>(
 
         const rawParams = (segment as RouteSegment | undefined)?.params;
         const params = rawParams ? await rawParams : {};
-        const result = await handler(req, { params });
+        // 读请求幂等，连接抖动时重建连接池重试一次；写请求不重试——
+        // 插入可能已经成功只是连接先断，重试会造成重复写入。
+        const result = SAFE_METHODS.has(req.method)
+          ? await withDbRetry(() => handler(req, { params }), { scope: `route:${pathname}` })
+          : await handler(req, { params });
 
         if (result instanceof Response) {
           logger.info({ ms: Date.now() - startedAt, status: result.status }, "请求完成");

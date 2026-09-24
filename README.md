@@ -189,6 +189,44 @@ Next 的内联引导脚本会被全部拦截，水合失败，表现为整页空
 
 自托管 / 本地开发完全不受影响：`JOB_WORKER_MODE` 不配置即默认 `inprocess`，行为与从前一致。
 
+### 保活：别让「第一次打开就 500」
+
+**症状**：隔一阵子打开站点报
+`An error occurred in the Server Components render ... A digest property is included`，
+刷新一下又好了；未登录访问却一切正常。
+
+**根因**：两条冷路径叠加——
+
+1. 无服务器实例无流量时被冻结，连接池里的 TCP 连接已被对端丢弃，但驱动不知情，
+   下一次查询才炸（`ECONNRESET` / connection terminated）；
+2. 远端 Postgres（Neon 免费档）闲置后计算节点挂起，首次连接要等它唤醒。
+
+未登录时 `/` 只做 `redirect`、不查库，所以看着没事；带着会话 cookie 会查 `users` 表，
+正好踩在上面那一下失败上 → 整个服务端组件渲染抛错 → 生产构建只留一个 `digest`。
+
+**代码侧已做的兜底**：
+
+- `lib/db/retry.ts` 的 `withDbRetry()`：识别连接类错误（网络 errno、SQLSTATE `08/53/57`、
+  postgres.js 的 `CONNECTION_*`）后**重建连接池**再重试。
+  已接在 `getSessionUser()`、`serviceContext()`、时间线首屏查询，以及 `defineRoute` 的
+  **读请求**（写请求不重试——插入可能已成功只是连接先断，重试会重复写入）。
+- `app/global-error.tsx`、`app/error.tsx`、`app/(app)/error.tsx`：三级错误边界，
+  出错时给中文纸卡 + 「再试一次」，并显示 `digest` 便于报障。
+
+**运维侧（仍需配置）**：定期打一个**会查库**的端点把两边叫醒。
+
+- 仓库内已带 `.github/workflows/keepalive.yml`，每 10 分钟打一次 `/api/ready`
+  （会执行 `SELECT 1`）。站点不是 `diary.toyempires.top` 的话，在仓库
+  Settings → Variables 里设 `KEEPALIVE_BASE_URL`；想顺便跑任务队列就再加
+  repository secret `JOB_TICK_SECRET`。**`/api/health` 不查库，拿它保活无效。**
+- 要分钟级精度改用 cron-job.org 或自有服务器 crontab：
+
+  ```bash
+  */5 * * * * curl -fsS --max-time 45 https://<域名>/api/ready > /dev/null
+  ```
+
+- Neon 控制台可把 compute auto-suspend 调长或关掉，从源头消除第 2 条。
+
 ### 本地开发注意（PGlite）
 
 PGlite 是**单进程独占** `.data/pgdata` 的：跑 `db:migrate` / `bootstrap` / `db:seed` 这些脚本前，

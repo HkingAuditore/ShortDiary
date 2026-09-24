@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { serviceContext } from "@/lib/api/context";
+import { withDbRetry } from "@/lib/db/retry";
 import { listEntries } from "@/lib/entry/entry.service";
 import { Composer } from "@/components/entry/Composer";
 import { EntryList } from "@/components/entry/EntryList";
@@ -21,7 +22,8 @@ export default async function TimelinePage() {
   if (!session?.user?.id) redirect("/login");
 
   const ctx = await serviceContext();
-  const page = await listEntries(ctx, { limit: 30 });
+  // 首屏唯一的重查询：会话查询已把连接池重建好，这里再兜一层重试
+  const page = await withDbRetry(() => listEntries(ctx, { limit: 30 }), { scope: "timeline.list" });
   const todayStr = today(ctx.timezone);
   const todayCount = page.items.filter((e) => e.entryDate === todayStr).length;
   const todayStarred = page.items.filter((e) => e.entryDate === todayStr && e.starred).length;

@@ -60,6 +60,34 @@ export function getDb(): Promise<Database> {
   return holder.promise;
 }
 
+/** 底层驱动句柄：PGlite 暴露 close()，postgres.js 暴露 end()。 */
+type ClosableClient = {
+  end?: (opts?: { timeout?: number }) => Promise<unknown>;
+  close?: () => Promise<unknown>;
+};
+
+async function closeClient(db: Database): Promise<void> {
+  const raw = (db as unknown as { $client?: ClosableClient }).$client;
+  try {
+    if (typeof raw?.end === "function") await raw.end({ timeout: 2 });
+    else if (typeof raw?.close === "function") await raw.close();
+  } catch {
+    // 关闭失败无所谓：连接已经不可信，进程回收时平台会一并清掉
+  }
+}
+
+/**
+ * 丢弃并关闭当前连接实例，下次 getDb() 重新建连。
+ * 实例冻结/远端挂起后池里的连接已死但驱动仍认为可用，不重建就会一直炸。
+ * 异步关闭且不 await —— 不能让重试等在一个坏连接上。
+ */
+export function resetDatabase(): void {
+  const stale = holder.promise;
+  holder.promise = undefined;
+  if (!stale) return;
+  void stale.then(closeClient).catch(() => undefined);
+}
+
 /** 底层驱动句柄：PGlite 暴露 exec()，postgres.js 暴露 unsafe()。 */
 type RawClient = {
   exec?: (script: string) => Promise<unknown>;
