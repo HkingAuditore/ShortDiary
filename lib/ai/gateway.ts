@@ -114,6 +114,8 @@ export interface GatewayInput {
   timeoutMs?: number;
   /** 内容寻址缓存键；命中则 0 成本返回 */
   cacheKey?: string;
+  /** 结构化重试时附上的「期望形状」说明（例：{"reaction": "..."}），帮模型把键名写对 */
+  schemaHint?: string;
   onDelta?: (delta: string) => void;
   signal?: AbortSignal;
 }
@@ -142,7 +144,12 @@ export async function runGateway<T = unknown>(input: GatewayInput): Promise<Gate
   // 1) 内容寻址缓存
   if (input.cacheKey) {
     const hit = await findCachedAnnotation(input.userId, input.cacheKey);
-    if (hit) {
+    // 缓存里可能存着历史上校验失败的裸 JSON（旧代码会存），命中它等于永远修不好
+    const hitValid = hit ? !input.schema || input.schema.safeParse(hit.content).success : false;
+    if (hit && !hitValid) {
+      aiLogger.warn({ task: input.task, cacheKey: input.cacheKey }, "缓存内容未通过校验，忽略并重新生成");
+    }
+    if (hit && hitValid) {
       aiLogger.info({ task: input.task, cached: true }, "AI 缓存命中");
       return {
         json: hit.content as T,
@@ -204,7 +211,16 @@ export async function runGateway<T = unknown>(input: GatewayInput): Promise<Gate
     if (!check.success) {
       const stricter: AiMessage[] = [
         ...messages,
-        { role: "user", content: "上一段输出未能解析为合法 JSON。请重新输出，严格遵守：只输出一个 JSON 对象，键名与类型完全符合要求，不要包含解释、注释或代码围栏。" },
+        {
+          role: "user",
+          content: [
+            "上一段输出未能解析为合法 JSON。请重新输出，严格遵守：只输出一个 JSON 对象，",
+            "键名与类型完全符合要求，不要包含解释、注释或代码围栏。",
+            input.schemaHint ? `期望形状：${input.schemaHint}（键名必须完全一致，不要改名）。` : "",
+          ]
+            .filter(Boolean)
+            .join(""),
+        },
       ];
       try {
         const retry = await withConcurrencyLimit(() =>

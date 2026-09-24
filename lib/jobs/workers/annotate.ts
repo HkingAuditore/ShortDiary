@@ -3,7 +3,7 @@ import { findEntryById, updateEntry } from "@/lib/entry/entry.repo";
 import { listAssetsByEntry } from "@/lib/asset/asset.repo";
 import { ensureTags } from "@/lib/tag/tag.repo";
 import { annotateMessages, ANNOTATE_PROMPT_VERSION } from "@/lib/ai/prompts/annotate";
-import { annotationSchema } from "@/lib/ai/schemas";
+import { annotationSchema, ANNOTATION_SHAPE_HINT } from "@/lib/ai/schemas";
 import { runGateway } from "@/lib/ai/gateway";
 import { saveAnnotation } from "@/lib/ai/cache";
 import { contentHash } from "@/lib/utils/hash";
@@ -46,15 +46,23 @@ export async function runAnnotateJob(job: Job): Promise<void> {
       jsonMode: true,
       timeoutMs: 60_000,
       cacheKey: inputHash,
+      schemaHint: ANNOTATION_SHAPE_HINT,
     });
 
-    if (!result.json) throw new Error("AI 输出无法解析为结构化结果");
+    // 网关在两次校验都失败时会把「原始 JSON」原样返回（lowConfidence），
+    // 里面可能只有 topics、正文字段缺失 —— 直接存会让前端渲染出一个空便签。
+    const parsed = annotationSchema.safeParse(result.json);
+    if (!parsed.success) {
+      jobLogger.warn({ entryId, lowConfidence: result.lowConfidence, issues: parsed.error.issues.length }, "AI 输出未通过附注校验，不落库");
+      throw new Error("AI 输出无法解析为结构化结果");
+    }
+    const annotation = parsed.data;
 
     await saveAnnotation({
       entryId,
       userId,
       type: "annotation",
-      content: result.json,
+      content: annotation,
       providerId: result.providerId,
       model: result.model,
       promptVersion: ANNOTATE_PROMPT_VERSION,
@@ -62,7 +70,7 @@ export async function runAnnotateJob(job: Job): Promise<void> {
     });
 
     // 候选标签只写入 tags 表作为「AI 建议」，不自动绑定到 entry
-    const suggested = (result.json as { tagSuggestions?: Array<{ name: string; confidence: number }> }).tagSuggestions ?? [];
+    const suggested = annotation.tagSuggestions;
     const confident = suggested.filter((s) => s.confidence >= 0.6).map((s) => s.name);
     if (confident.length > 0) await ensureTags(userId, confident, "ai");
 

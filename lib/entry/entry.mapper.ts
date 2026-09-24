@@ -60,24 +60,33 @@ function asArray<T>(v: unknown): T[] {
   return [];
 }
 
+/**
+ * 取附注正文。除了约定键 reaction，还认历史上模型自创/旧版本用过的键名
+ * （实测 deepseek-flash 吐过 reply，a2 及更早叫 summary），否则这些记录会显示成空便签。
+ * 空白串一律视为没有。
+ */
+const REACTION_KEYS = ["reaction", "reply", "response", "note", "comment", "summary"];
+
+function reactionOf(c: Record<string, unknown>): string | undefined {
+  for (const key of REACTION_KEYS) {
+    const v = c[key];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return undefined;
+}
+
 function buildAiView(rows: RawAi[], status: string): EntryAiView | null {
   const annotation = rows.find((r) => r.type === "annotation");
   if (!annotation) {
     return status === "pending" || status === "running" ? { status } : { status: "skipped" };
   }
-  const c = (annotation.content ?? {}) as Partial<EntryAiView>;
+  const c = (annotation.content ?? {}) as Record<string, unknown>;
   return {
     status: "completed",
-    // 兼容 a2 及更早：那时这个字段叫 summary
-    reaction:
-      typeof c.reaction === "string"
-        ? c.reaction
-        : typeof (c as { summary?: unknown }).summary === "string"
-          ? (c as { summary: string }).summary
-          : undefined,
+    reaction: reactionOf(c),
     topics: Array.isArray(c.topics) ? (c.topics as string[]) : undefined,
     tagSuggestions: Array.isArray(c.tagSuggestions) ? (c.tagSuggestions as EntryAiView["tagSuggestions"]) : undefined,
-    mood: c.mood,
+    mood: c.mood as EntryAiView["mood"],
   };
 }
 

@@ -99,7 +99,8 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
   });
 
   const ai = entry.ai;
-  const showAi = Boolean(ai && (ai.reaction || (ai.topics?.length ?? 0) > 0));
+  // 没有正文就不贴便签：只挂几个主题词的空便签看着像「附注生成了一半」
+  const showAi = Boolean(ai?.reaction);
 
   return (
     <PaperCard
