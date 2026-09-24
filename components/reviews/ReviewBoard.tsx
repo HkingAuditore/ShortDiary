@@ -72,6 +72,8 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
   const toast = useToast();
   const qc = useQueryClient();
   const [anchor, setAnchor] = useState("");
+  // 二次确认：删除不可撤销，先让按钮自己变成「确认 / 取消」
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const list = useQuery({
     queryKey: ["reviews"],
@@ -100,6 +102,19 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
       toast.push("已重新排队", { tone: "info" });
     },
     onError: (err: Error) => toast.push(err.message, { tone: "error" }),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => apiSend<{ id: string }>(`/api/reviews/${id}`, "DELETE"),
+    onSuccess: () => {
+      setConfirmId(null);
+      void qc.invalidateQueries({ queryKey: ["reviews"] });
+      toast.push("复盘已删除 · 原文不受影响，需要时可再生成", { tone: "success" });
+    },
+    onError: (err: Error) => {
+      setConfirmId(null);
+      toast.push(err.message, { tone: "error" });
+    },
   });
 
   const rows = list.data ?? [];
@@ -172,9 +187,49 @@ export function ReviewBoard({ timezone }: { timezone: string }) {
                       {pending ? "生成中…" : r.status === "failed" ? "生成失败" : `模型 ${r.model || "—"} · v${r.promptVersion}`}
                     </p>
                   </div>
-                  <PaperButton variant="ghost" disabled={pending || regenerate.isPending} onClick={() => regenerate.mutate(r.id)}>
-                    重新生成
-                  </PaperButton>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <div className="flex items-center gap-1">
+                      <PaperButton
+                        variant="ghost"
+                        className="px-2 py-1 text-xs"
+                        disabled={pending || regenerate.isPending}
+                        onClick={() => regenerate.mutate(r.id)}
+                      >
+                        重新生成
+                      </PaperButton>
+                      {confirmId === r.id ? (
+                        <>
+                          <PaperButton
+                            variant="danger"
+                            className="px-2 py-1 text-xs"
+                            disabled={remove.isPending}
+                            onClick={() => remove.mutate(r.id)}
+                          >
+                            {remove.isPending ? "删除中…" : "确认删除"}
+                          </PaperButton>
+                          <button
+                            type="button"
+                            className="paper-focus px-1 text-xs text-ink-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-ink"
+                            onClick={() => setConfirmId(null)}
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label={`删除${TYPE_LABEL[r.type as ReviewType] ?? r.type} ${r.startDate}`}
+                          className="paper-focus px-1 text-xs text-rose/80 underline decoration-dotted underline-offset-2 transition-colors hover:text-rose"
+                          onClick={() => setConfirmId(r.id)}
+                        >
+                          删除
+                        </button>
+                      )}
+                    </div>
+                    {confirmId === r.id ? (
+                      <p className="text-[11px] text-ink-muted">{pending ? "会同时撤掉排队中的生成任务" : "删除后无法恢复，但可以重新生成"}</p>
+                    ) : null}
+                  </div>
                 </header>
 
                 {pending ? (

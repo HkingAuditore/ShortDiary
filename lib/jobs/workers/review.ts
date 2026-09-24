@@ -92,7 +92,7 @@ export async function runReviewJob(job: Job): Promise<void> {
 }
 
 function toReviewInput(e: ReviewSourceEntry) {
-  return { id: e.id, entryDate: e.entryDate, time: e.time, content: e.content, summary: e.summary ?? undefined };
+  return { id: e.id, entryDate: e.entryDate, time: e.time, content: e.content, reaction: e.reaction ?? undefined };
 }
 
 function chunkEntries<T>(items: T[], size: number): T[][] {

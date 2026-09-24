@@ -95,7 +95,8 @@ export interface EntryTagView {
 
 export interface EntryAiView {
   status: string;
-  summary?: string;
+  /** a3 起：朋友读完后的即时反应。旧版本字段 summary 由 mapper 兜底读入 */
+  reaction?: string;
   topics?: string[];
   tagSuggestions?: Array<{ name: string; confidence: number }>;
   mood?: { label: string; confidence: number };

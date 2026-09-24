@@ -14,7 +14,8 @@ export interface ReviewEntryInput {
   entryDate: string;
   time: string;
   content: string;
-  summary?: string;
+  /** 单条记录的 AI 附注（朋友反应） */
+  reaction?: string;
   topics?: string[];
 }
 
@@ -24,7 +25,7 @@ export function dailyMessages(input: {
   moodEnabled?: boolean;
 }): AiMessage[] {
   const body = input.entries
-    .map((e, i) => `[${i + 1}] id=${e.id} ${e.time}\n${e.content}${e.summary ? `\n（摘要：${e.summary}）` : ""}`)
+    .map((e, i) => `[${i + 1}] id=${e.id} ${e.time}\n${e.content}${e.reaction ? `\n（当时的附注：${e.reaction}）` : ""}`)
     .join("\n\n");
 
   return [

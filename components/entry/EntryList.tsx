@@ -77,7 +77,7 @@ export function EntryList({
       // 估高尽量贴近真实卡片：正文 + AI 附注框 + 标签行 + 图片。
       // 估得越准，未测量行的首帧重叠越轻（measureElement 会在渲染后纠正）。
       let base = 96 + Math.min(row.entry.content.length, 600) * 0.13;
-      if (row.entry.ai?.summary) base += 96;
+      if (row.entry.ai?.reaction) base += 96;
       if (row.entry.tags.length > 0) base += 34;
       const images = row.entry.assets.length > 0 ? 260 : 0;
       return base + images;

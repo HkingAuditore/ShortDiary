@@ -58,7 +58,7 @@ export async function buildExport(
     entryDate: e.entryDate,
     time: e.time,
     content: e.content,
-    summary: e.summary,
+    reaction: e.reaction,
     assets: (assetsByEntry.get(e.id) ?? []).map((a) => ({
       id: a.id,
       cosKey: a.cosKey,
@@ -126,11 +126,11 @@ export async function buildExport(
   };
 }
 
-function toMarkdown(entries: Array<{ entryDate: string; time: string; content: string; summary: string | null }>): string {
-  const byDate = new Map<string, Array<{ time: string; content: string; summary: string | null }>>();
+function toMarkdown(entries: Array<{ entryDate: string; time: string; content: string; reaction: string | null }>): string {
+  const byDate = new Map<string, Array<{ time: string; content: string; reaction: string | null }>>();
   for (const e of entries) {
     const list = byDate.get(e.entryDate) ?? [];
-    list.push({ time: e.time, content: e.content, summary: e.summary });
+    list.push({ time: e.time, content: e.content, reaction: e.reaction });
     byDate.set(e.entryDate, list);
   }
   const parts: string[] = [];
@@ -138,7 +138,7 @@ function toMarkdown(entries: Array<{ entryDate: string; time: string; content: s
     parts.push(`# ${date}\n`);
     for (const item of list) {
       parts.push(`## ${item.time}\n\n${item.content}\n`);
-      if (item.summary) parts.push(`> ${item.summary}\n`);
+      if (item.reaction) parts.push(`> ${item.reaction}\n`);
     }
   }
   return parts.join("\n");

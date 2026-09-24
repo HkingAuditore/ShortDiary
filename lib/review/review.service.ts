@@ -1,7 +1,7 @@
 import { AppError } from "@/lib/errors/app-error";
 import { enqueue } from "@/lib/jobs/queue";
 import { kickWorker } from "@/lib/jobs/runner";
-import { findReviewById, listReviews as repoList, upsertPending } from "./review.repo";
+import { cancelPendingReviewJobs, deleteReview as repoDelete, findReviewById, listReviews as repoList, upsertPending } from "./review.repo";
 import { versionOf } from "@/lib/jobs/workers/review";
 import { endOfMonth, endOfWeek, startOfMonth, startOfWeek, today } from "@/lib/utils/date";
 import type { ServiceContext } from "@/lib/entry/entry.service";
@@ -71,6 +71,20 @@ export async function regenerateReview(ctx: ServiceContext, reviewId: string) {
   kickWorker();
 
   return { reviewId: review.id, status: "pending" };
+}
+
+/**
+ * 删除复盘：先撤掉排队中的生成任务，再删记录，
+ * 避免删完之后后台任务又把它写回来。
+ */
+export async function deleteReview(ctx: ServiceContext, reviewId: string) {
+  const review = await findReviewById(ctx.userId, reviewId);
+  if (!review) throw AppError.notFound("复盘不存在");
+
+  await cancelPendingReviewJobs(ctx.userId, review.type, review.startDate);
+  await repoDelete(ctx.userId, reviewId);
+
+  return { id: reviewId, type: review.type, startDate: review.startDate };
 }
 
 export async function getReviews(ctx: ServiceContext, type?: string, limit = 30) {

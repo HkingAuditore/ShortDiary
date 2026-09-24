@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, like } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { reviews } from "@/lib/db/schema";
+import { jobs, reviews } from "@/lib/db/schema";
 import type { Review } from "@/lib/db/schema";
 import { uuidv7 } from "@/lib/utils/uuid";
 
@@ -100,4 +100,37 @@ export async function findReviewById(userId: string, id: string): Promise<Review
   const db = await getDb();
   const rows = await db.select().from(reviews).where(and(eq(reviews.id, id), eq(reviews.userId, userId))).limit(1);
   return rows[0] ?? null;
+}
+
+/**
+ * 删除复盘。复盘是派生内容（原文不受影响），不做软删，直接物理删除；
+ * 想再看随时可以重新生成一条。
+ * 返回 false 表示这条复盘不存在或不属于当前用户。
+ */
+export async function deleteReview(userId: string, id: string): Promise<boolean> {
+  const db = await getDb();
+  const rows = await db
+    .delete(reviews)
+    .where(and(eq(reviews.id, id), eq(reviews.userId, userId)))
+    .returning({ id: reviews.id });
+  return rows.length > 0;
+}
+
+/**
+ * 撤掉尚未跑的复盘任务。否则「删除 → 后台任务随后把同一条复盘又写回来」，
+ * 用户会看到删不掉。只动 queued：正在跑的任务无法安全中断，让它写完再删即可。
+ */
+export async function cancelPendingReviewJobs(userId: string, type: string, startDate: string): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .delete(jobs)
+    .where(
+      and(
+        eq(jobs.type, "review_generate"),
+        eq(jobs.status, "queued"),
+        like(jobs.idempotencyKey, `review:${userId}:${type}:${startDate}:%`),
+      ),
+    )
+    .returning({ id: jobs.id });
+  return rows.length;
 }

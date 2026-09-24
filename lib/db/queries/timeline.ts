@@ -190,10 +190,10 @@ export interface ReviewSourceEntry {
   entryDate: string;
   time: string;
   content: string;
-  summary: string | null;
+  reaction: string | null;
 }
 
-/** 复盘输入：范围内全部记录 + 已有摘要（避免重复上传原文） */
+/** 复盘输入：范围内全部记录 + 已有附注（避免重复上传原文） */
 export async function fetchEntriesForReview(userId: string, from: string, to: string, limit = 600): Promise<ReviewSourceEntry[]> {
   const db = await getDb();
   const result = await db.execute(sql`
@@ -201,8 +201,9 @@ export async function fetchEntriesForReview(userId: string, from: string, to: st
            e.entry_date AS "entryDate",
            to_char(e.occurred_at, 'HH24:MI') AS "time",
            e.content,
-           (SELECT an.content_json->>'summary' FROM ai_annotations an
-             WHERE an.entry_id = e.id AND an.type = 'annotation' LIMIT 1) AS "summary"
+           (SELECT COALESCE(an.content_json->>'reaction', an.content_json->>'summary')
+              FROM ai_annotations an
+             WHERE an.entry_id = e.id AND an.type = 'annotation' LIMIT 1) AS "reaction"
     FROM entries e
     WHERE e.user_id = ${userId}::uuid
       AND e.deleted_at IS NULL

@@ -5,8 +5,9 @@ import { z } from "zod";
  * 失败则换「更严格的 JSON 提示」重试一次，再失败回退纯文本并标记 low_confidence。
  */
 
-export const annotationSchema = z.object({
-  summary: z.string().max(300),
+const annotationShape = z.object({
+  /** 朋友读完后的即时反应，不是摘要 */
+  reaction: z.string().max(300),
   topics: z.array(z.string().max(24)).max(5).default([]),
   tagSuggestions: z
     .array(z.object({ name: z.string().max(24), confidence: z.number().min(0).max(1) }))
@@ -15,7 +16,16 @@ export const annotationSchema = z.object({
   mood: z.object({ label: z.string().max(16), confidence: z.number().min(0).max(1) }).optional(),
 });
 
-export type AnnotationOutput = z.infer<typeof annotationSchema>;
+/** 兼容模型偶尔仍吐旧字段名 summary（a2 及更早），否则会直接校验失败导致 job 失败 */
+export const annotationSchema = z.preprocess((raw) => {
+  if (raw && typeof raw === "object" && !("reaction" in raw) && "summary" in raw) {
+    const { summary, ...rest } = raw as Record<string, unknown>;
+    return { ...rest, reaction: summary };
+  }
+  return raw;
+}, annotationShape);
+
+export type AnnotationOutput = z.infer<typeof annotationShape>;
 
 const idList = z.array(z.string()).max(50).default([]);
 

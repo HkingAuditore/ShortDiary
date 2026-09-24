@@ -99,7 +99,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
   });
 
   const ai = entry.ai;
-  const showAi = Boolean(ai && (ai.summary || (ai.topics?.length ?? 0) > 0));
+  const showAi = Boolean(ai && (ai.reaction || (ai.topics?.length ?? 0) > 0));
 
   return (
     <PaperCard
@@ -196,7 +196,7 @@ export function EntryCard({ entry, timezone }: EntryCardProps) {
           style={{ "--sticky-color": "#e7efe3" } as React.CSSProperties}
         >
           <HandNote className="mr-1.5 text-[13px] text-sage">AI 附注</HandNote>
-          {ai?.summary ? <p className="mt-0.5">{ai.summary}</p> : null}
+          {ai?.reaction ? <p className="mt-0.5">{ai.reaction}</p> : null}
           {ai?.topics?.length ? (
             <p className="mt-1.5 flex flex-wrap gap-1 text-ink-muted">
               {ai.topics.map((t) => (

@@ -68,7 +68,13 @@ function buildAiView(rows: RawAi[], status: string): EntryAiView | null {
   const c = (annotation.content ?? {}) as Partial<EntryAiView>;
   return {
     status: "completed",
-    summary: typeof c.summary === "string" ? c.summary : undefined,
+    // 兼容 a2 及更早：那时这个字段叫 summary
+    reaction:
+      typeof c.reaction === "string"
+        ? c.reaction
+        : typeof (c as { summary?: unknown }).summary === "string"
+          ? (c as { summary: string }).summary
+          : undefined,
     topics: Array.isArray(c.topics) ? (c.topics as string[]) : undefined,
     tagSuggestions: Array.isArray(c.tagSuggestions) ? (c.tagSuggestions as EntryAiView["tagSuggestions"]) : undefined,
     mood: c.mood,
